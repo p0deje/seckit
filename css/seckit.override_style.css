@@ -1,0 +1,10 @@
+/* $Id$ */
+
+/**
+ * Override styles for <iframe>, <frame>, <object> and <embed> elements.
+ */
+iframe, frame, object, embed {
+    filter: alpha (opacity=100) !important; /* for IE */
+    opacity: 1 !important; /* for non-IE browsers */
+    z-index: 1 !important; /* prevent "last loaded - first focused" behavior */
+}

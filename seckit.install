@@ -1,0 +1,14 @@
+<?php
+// $Id$
+
+// TODO: hook_install()
+
+/**
+ * Implements hook_uninstall()
+ */
+function seckit_uninstall() {
+  variable_del('seckit_xss');
+  variable_del('seckit_csrf');
+  variable_del('seckit_clickjacking');
+  variable_del('seckit_ssl');
+}
