@@ -1,4 +1,9 @@
-name = Security Kit
-description = Improve security of your Drupal website
+name = "Security Kit"
+description = "Improve security of your Drupal website."
 package = Security
-core = 6.x
+core = 7.x
+configure = admin/config/seckit
+files[] = seckit.install
+files[] = seckit.module
+files[] = seckit.test
+files[] = includes/seckit.form.inc

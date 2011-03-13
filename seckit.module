@@ -8,21 +8,22 @@
  * Necessary constants.
  */
 define('SECKIT_X_XSS_DISABLE', 0); // disable X-XSS-Protection HTTP header
-define('SECKIT_X_XSS_0', 1);       // set X-XSS-Protection HTTP header to 0
-define('SECKIT_X_XSS_1', 2);       // set X-XSS-Protection HTTP header to 1; mode=block
-define('SECKIT_X_FRAME_DISABLE', 0);    // disable X-Frame-Options HTTP header
+define('SECKIT_X_XSS_0', 1); // set X-XSS-Protection HTTP header to 0
+define('SECKIT_X_XSS_1', 2); // set X-XSS-Protection HTTP header to 1; mode=block
+define('SECKIT_X_FRAME_DISABLE', 0); // disable X-Frame-Options HTTP header
 define('SECKIT_X_FRAME_SAMEORIGIN', 1); // set X-Frame-Options HTTP header to SameOrigin
-define('SECKIT_X_FRAME_DENY', 2);       // set X-Frame-Options HTTP header to Deny
-define('SECKIT_IE_MIME_FAILED', 0);   // Upload module is not enabled
-define('SECKIT_IE_MIME_SECURE', 1);   // txt is not in allowed extensions list
-define('SECKIT_IE_MIME_INSECURE', 2); // txt is in allowed extensions list
-define('SECKIT_IE_MIME_REGEX', '/(\s|^)txt(\s|$)/'); // regular expression for seckit_ie_mime functions
+define('SECKIT_X_FRAME_DENY', 2); // set X-Frame-Options HTTP header to Deny
 
 /**
- * Implements hook_perm().
+ * Implements hook_permission().
  */
-function seckit_perm() {
-  return array('administer seckit');
+function seckit_permission() {
+  return array(
+    'administer seckit' => array(
+      'title' => t('Administer SecKit'),
+      'description' => t('Access to adminstrative interface of Security Kit.'),
+    ),
+  );
 }
 
 /**
@@ -30,19 +31,13 @@ function seckit_perm() {
  */
 function seckit_menu() {
   // settings page
-  $items['admin/settings/seckit'] = array(
+  $items['admin/config/seckit'] = array(
     'title' => 'Security Kit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('seckit_admin_form'),
     'description' => 'Configure various options to improve security of your website.',
     'access arguments' => array('administer seckit'),
     'file' => 'includes/seckit.form.inc',
-  );
-  // menu callback for AHAH
-  $items['admin/settings/seckit/mime'] = array(
-    'page callback' => '_seckit_ie_mime_js',
-    'access arguments' => array('administer seckit'),
-    'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -61,7 +56,14 @@ function seckit_init() {
   _seckit_x_frame($options['seckit_clickjacking']['x_frame']);
   _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
   _seckit_override_style($options['seckit_clickjacking']['override_style']);
-  _seckit_sts($options['seckit_ssl']['sts']);
+  _seckit_hsts($options['seckit_ssl']['hsts']);
+
+  // load jQuery listener
+  if ($_GET['q'] == 'admin/config/seckit') {
+    $path = drupal_get_path('module', 'seckit');
+    $listener = $path . '/js/seckit.listener.js';
+    drupal_add_js($listener);
+  }
 }
 
 /**
@@ -128,7 +130,7 @@ function _seckit_csp($apply) {
 
     // send CSP response header with specified directives
     $directives = implode('; ', $directives);
-    drupal_set_header('X-Content-Security-Policy: ' . $directives);
+    drupal_add_http_header('X-Content-Security-Policy', $directives);
   }
 }
 
@@ -140,120 +142,15 @@ function _seckit_csp($apply) {
 function _seckit_x_xss($apply) {
   switch ($apply) {
     case SECKIT_X_XSS_0:
-      drupal_set_header('X-XSS-Protection: 0'); // set X-XSS-Protection header to 0
+      drupal_add_http_header('X-XSS-Protection', '0'); // set X-XSS-Protection header to 0
       break;
 
     case SECKIT_X_XSS_1:
-      drupal_set_header('X-XSS-Protection: 1; mode=block'); // set X-XSS-Protection header to 1; mode=block
+      drupal_add_http_header('X-XSS-Protection', '1; mode=block'); // set X-XSS-Protection header to 1; mode=block
       break;
 
     case SECKIT_X_XSS_DISABLE:
-      default: //do nothing
-      break;
-  }
-}
-
-/**
- * Sends menu callback for AHAH, executes necessary functionality.
- */
-function _seckit_ie_mime_js() {
-  // prepare form
-  include_once drupal_get_path('module', 'seckit') . '/includes/seckit.form.inc';
-  $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $form_build_id = $_POST['form_build_id'];
-  $form = form_get_cache($form_build_id, $form_state);
-  $args = $form['#parameters'];
-  $form_id = array_shift($args);
-  $form['#post'] = $_POST;
-  $form_state['post'] = $_POST;
-  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-  $new_form = $form['seckit_xss']['ie_mime']['button'];
-  unset($new_form['#prefix']);
-  unset($new_form['#suffix']);
-
-  // execute function
-  _seckit_ie_mime();
-
-  // change button text, considering current settings
-  $result = _seckit_ie_mime_check();
-  if ($result == SECKIT_IE_MIME_SECURE) {
-    $new_form['#value'] = t('Allow uploading of .txt files');
-  }
-  else {
-    $new_form['#value'] = t('Restrict uploading of .txt files');
-  }
-
-  // render new form
-  $output = theme('status_messages') . drupal_render($new_form);
-  drupal_json(array('status' => TRUE, 'data' => $output));
-}
-
-/**
- * Checks extensions variable set by Upload module.
- *
- * Checks both Default Extensions list and Anonymous Users Extensions.
- * Returns results for further extensions modification.
- */
-function _seckit_ie_mime_check() {
-  // if Upload module is enabled
-  if (module_exists('upload')) {
-    // default extensions check
-    $default = variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
-    $default = preg_match(SECKIT_IE_MIME_REGEX, $default);
-    // extensions for anonymous users check
-    $anonymous = variable_get('upload_extensions_1', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
-    $anonymous = preg_match(SECKIT_IE_MIME_REGEX, $anonymous);
-    if (($default == 0) || ($anonymous == 0)) {
-      return SECKIT_IE_MIME_SECURE;
-    }
-    else {
-      return SECKIT_IE_MIME_INSECURE;
-    }
-  }
-  // if Upload module is not enabled
-  else {
-    return SECKIT_IE_MIME_FAILED;
-  }
-}
-
-/**
- * Sets txt as allowed/restricted extension.
- *
- * It's necessary to remove txt from allowed extensions, because Upload module
- * can be used to exploit IE MIME sniffer bug, which leads to HTML injection.
- * More information is available at
- * http://p0deje.blogspot.com/2010/05/exploiting-ie-mime-sniffer.html
- */
-function _seckit_ie_mime() {
-  // check extensions
-  $result = _seckit_ie_mime_check();
-  switch ($result) {
-    case SECKIT_IE_MIME_INSECURE:
-      $default_extensions = variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
-      $safe_extensions = preg_replace(SECKIT_IE_MIME_REGEX, ' ', $default_extensions);
-      variable_set('upload_extensions_default', trim($safe_extensions));
-      // extensions for anonymous users
-      $anonymous_extensions = variable_get('upload_extensions_1', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
-      $safe_extensions = preg_replace(SECKIT_IE_MIME_REGEX, ' ', $anonymous_extensions);
-      variable_set('upload_extensions_1', trim($safe_extensions));
-      // print message
-      drupal_set_message(t('Security Kit successfully removed txt from allowed extensions.'));
-      break;
-
-    case SECKIT_IE_MIME_SECURE:
-      $default_extensions = variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
-      $unsafe_extensions = $default_extensions . ' txt';
-      variable_set('upload_extensions_default', $unsafe_extensions);
-      // extensions for anonymous users
-      $anonymous_extensions = variable_get('upload_extensions_1', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
-      $unsafe_extensions = $anonymous_extensions . ' txt';
-      variable_set('upload_extensions_1', $unsafe_extensions);
-      // print message
-      drupal_set_message(t('Security Kit added txt to allowed extensions. Remember: it may lead to HTML injection.'), 'warning');
-      break;
-
-    case SECKIT_IE_MIME_FAILED:
-      drupal_set_message(t('Upload module is not enabled. No changes were made.'), 'error');
+    default: //do nothing
       break;
   }
 }
@@ -307,15 +204,15 @@ function _seckit_origin($apply) {
 function _seckit_x_frame($apply) {
   switch ($apply) {
     case SECKIT_X_FRAME_SAMEORIGIN:
-      drupal_set_header('X-Frame-Options: SameOrigin'); // set X-Frame-Options to SameOrigin
+      drupal_add_http_header('X-Frame-Options', 'SameOrigin'); // set X-Frame-Options to SameOrigin
       break;
 
     case SECKIT_X_FRAME_DENY:
-      drupal_set_header('X-Frame-Options: Deny'); // set X-Frame-Options to Deny
+      drupal_add_http_header('X-Frame-Options', 'Deny'); // set X-Frame-Options to Deny
       break;
 
     case SECKIT_X_FRAME_DISABLE:
-      default: // do nothing;
+    default: // do nothing;
       break;
   }
 }
@@ -341,7 +238,7 @@ function _seckit_js_css_noscript($apply) {
       <!--//--><![CDATA[//><!--
       // open script tag to avoid syntax errors
 EOT;
-    drupal_add_js($code, 'inline', 'header');
+    drupal_add_js($code, array('type' => 'inline'));
     $code = <<< EOT
       // close script tag for SecKit protection
       //--><!]]>
@@ -382,7 +279,7 @@ EOT;
       <!--//--><![CDATA[//><!--
       // open script tag to avoid syntax errors
 EOT;
-    drupal_add_js($code, 'inline', 'footer');
+    drupal_add_js($code, array('type' => 'inline', 'scope' => 'footer'));
   }
 }
 
@@ -403,26 +300,26 @@ function _seckit_override_style($apply) {
 /**
  * Sends Strict-Transport-Security HTTP header
  *
- * Strict-Transport-Security (STS) header prevents eavesdropping and MITM attacks like SSLStrip,
+ * HTTP Strict-Transport-Security (HSTS) header prevents eavesdropping and MITM attacks like SSLStrip,
  * forces user-agent to send requests in HTTPS-only mode and convert HTTP links into secure.
  *
  * Implementation of STS is based on the specification draft available at
- * http://lists.w3.org/Archives/Public/www-archive/2009Sep/att-0051/draft-hodges-strict-transport-sec-05.plain.html
+ * http://tools.ietf.org/id/draft-ietf-websec-strict-transport-sec-00.txt
  */
-function _seckit_sts($apply) {
+function _seckit_hsts($apply) {
   if ($apply) {
     // get default/set options
     $options = _seckit_get_options();
-    // prepare STS HTTP header value
-    $max_age = $options['seckit_ssl']['sts_max_age'];
-    $subdomains = $options['seckit_ssl']['sts_subdomains'];
-    $header[] = "max-age=$max_age";
+    // prepare HSTS header value
+    $max_age = $options['seckit_ssl']['hsts_max_age'];
+    $subdomains = $options['seckit_ssl']['hsts_subdomains'];
+    $header[] = 'max-age=' . $max_age;
     if ($subdomains) {
       $header[] = 'includeSubDomains';
     }
     $header = implode('; ', $header);
-    // send STS HTTP header
-    drupal_set_header('Strict-Transport-Security: ' . $header);
+    // send HSTS header
+    drupal_add_http_header('Strict-Transport-Security', $header);
   }
 }
 
@@ -452,8 +349,8 @@ function _seckit_get_options() {
     'override_style' => 0,
   );
   $default['seckit_ssl'] = array(
-    'sts' => 0,
-    'sts_subdomains' => 0,
+    'hsts' => 0,
+    'hsts_subdomains' => 0,
   );
   // get variables
   $result['seckit_xss'] = variable_get('seckit_xss', $default['seckit_xss']);
@@ -480,9 +377,9 @@ function _seckit_get_options() {
   if (!isset($result['seckit_clickjacking']['x_frame'])) {
     $result['seckit_clickjacking']['x_frame'] = SECKIT_X_FRAME_SAMEORIGIN;
   }
-  // set STS max-age to 1000
-  if (!isset($result['seckit_ssl']['sts_max_age'])) {
-    $result['seckit_ssl']['sts_max_age'] = 1000;
+  // set HSTS max-age to 1000
+  if (!isset($result['seckit_ssl']['hsts_max_age'])) {
+    $result['seckit_ssl']['hsts_max_age'] = 1000;
   }
   return $result;
 }
