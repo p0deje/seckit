@@ -31,41 +31,19 @@ class SecKitTestCase extends DrupalWebTestCase {
    * @see DrupalWebTestCase::setUp()
    */
   public function setUp() {
-    parent::setUp('seckit');
+    parent::setUp('upload', 'seckit');
     $this->admin = $this->drupalCreateUser(array('administer seckit'));
     $this->drupalLogin($this->admin);
   }
 
   /**
-   * Tests disabled X-Frame-Options HTTP response header.
+   * Tests disabled Content Security Policy.
    */
-  public function testXFrameOptionsIsDisabled() {
-    $form['seckit_clickjacking[x_frame]'] = 0;
+  public function testDisabledCSP() {
+    $form['seckit_xss[csp][checkbox]'] = 0;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $this->assertFalse($this->drupalGetHeader('X-Frame-Options'),
-                       t('X-Frame-Options is disabled'));
-  }
-
-  /**
-   * Tests set to SameOrigin X-Frame-Options HTTP response header.
-   */
-  public function testXFrameOptionsIsSameOrigin() {
-    $form['seckit_clickjacking[x_frame]'] = 1;
-    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $this->assertEqual('SameOrigin',
-                       $this->drupalGetHeader('X-Frame-Options'),
-                       t('X-Frame-Options is set to SameOrigin'));
-  }
-
-  /**
-   * Tests set to Deny X-Frame-Options HTTP response header.
-   */
-  public function testXFrameOptionsIsDeny() {
-    $form['seckit_clickjacking[x_frame]'] = 2;
-    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $this->assertEqual('Deny',
-                       $this->drupalGetHeader('X-Frame-Options'),
-                       t('X-Frame-Options is set to Deny'));
+    $this->assertFalse($this->drupalGetHeader('X-Content-Security-Policy'),
+                       t('Content Security Policy is disabled'));
   }
 
   /**
@@ -123,5 +101,119 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->assertEqual('1; mode=block',
                        $this->drupalGetHeader('X-XSS-Protection'),
                        t('X-XSS-Protection is set to 1; mode=block'));
+  }
+
+  /**
+   * Tests IE MIMI-sniffer exploitation with disabled Upload module.
+   */
+  public function testIEMIMEWithNoUpload() {
+    // TODO: add test
+  }
+
+  /**
+   * Tests IE MIMI-sniffer removal of txt.
+   */
+  public function testIEMIMETxtRemoval() {
+    // TODO: add test
+  }
+
+  /**
+   * Tests IE MIMI-sniffer restore of txt.
+   */
+  public function testIEMIMETxtRestore() {
+    // TODO: add test
+  }
+
+  /**
+   * Tests HTTP Origin allows requests from the site.
+   */
+  public function testOriginAllowsSite() {
+    // TODO: add test
+  }
+
+  /**
+   * Tests HTTP Origin allows requests from the specified source.
+   */
+  public function testOriginAllowsSpecifiedSource() {
+    // TODO: add test
+  }
+
+  /**
+   * Tests HTTP Origin denies request.
+   */
+  public function testOriginDeny() {
+    // TODO: add test
+  }
+
+  /**
+   * Tests disabled X-Frame-Options HTTP response header.
+   */
+  public function testXFrameOptionsIsDisabled() {
+    $form['seckit_clickjacking[x_frame]'] = 0;
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertFalse($this->drupalGetHeader('X-Frame-Options'),
+                       t('X-Frame-Options is disabled'));
+  }
+
+  /**
+   * Tests set to SameOrigin X-Frame-Options HTTP response header.
+   */
+  public function testXFrameOptionsIsSameOrigin() {
+    $form['seckit_clickjacking[x_frame]'] = 1;
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertEqual('SameOrigin',
+                       $this->drupalGetHeader('X-Frame-Options'),
+                       t('X-Frame-Options is set to SameOrigin'));
+  }
+
+  /**
+   * Tests set to Deny X-Frame-Options HTTP response header.
+   */
+  public function testXFrameOptionsIsDeny() {
+    $form['seckit_clickjacking[x_frame]'] = 2;
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertEqual('Deny',
+                       $this->drupalGetHeader('X-Frame-Options'),
+                       t('X-Frame-Options is set to Deny'));
+  }
+
+  /**
+   * Tests JS + CSS + Noscript protection.
+   */
+  public function testJSCSSNoscript() {
+    // TODO: add test
+  }
+
+  /**
+   * Tests style override for frames, objects and embeds.
+   */
+  public function testStyleOverride() {
+    // TODO: add test
+  }
+
+ /**
+  * Tests disabled HTTP Strict Transport Security.
+  */
+  public function testDisabledHSTS() {
+    $form['seckit_ssl[sts]'] = 0;
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertFalse($this->drupalGetHeader('Strict-Transport-Security'),
+                       t('HTTP Strict Transport Security is disabled'));
+  }
+
+ /**
+  * Tests HTTP Strict Transport Security has all directives.
+  */
+  public function testHSTSAllDirectves() {
+    $form = array(
+      'seckit_ssl[sts]' => 1,
+      'seckit_ssl[sts_max_age]' => 1000,
+      'seckit_ssl[sts_subdomains]' => 1,
+    );
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $expected = 'max-age=1000; includeSubDomains';
+    $this->assertEqual($expected,
+                       $this->drupalGetHeader('StrictTransport-Security'),
+                       t('HTTP Strict Transport Security is disabled'));
   }
 }
