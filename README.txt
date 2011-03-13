@@ -1,5 +1,3 @@
-$Id$
-
 Description
 -----------
 Security Kit (SecKit) provides with various options to improve security of web application.
@@ -30,4 +28,3 @@ Author
 Alex Rodionov
 p0deje [at] gmail [dot] com
 http://p0deje.blogspot.com
-http://drupal.org/user/529960
