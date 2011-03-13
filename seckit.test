@@ -195,7 +195,7 @@ class SecKitTestCase extends DrupalWebTestCase {
   * Tests disabled HTTP Strict Transport Security.
   */
   public function testDisabledHSTS() {
-    $form['seckit_ssl[sts]'] = 0;
+    $form['seckit_ssl[hsts]'] = 0;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $this->assertFalse($this->drupalGetHeader('Strict-Transport-Security'),
                        t('HTTP Strict Transport Security is disabled'));
@@ -206,14 +206,14 @@ class SecKitTestCase extends DrupalWebTestCase {
   */
   public function testHSTSAllDirectves() {
     $form = array(
-      'seckit_ssl[sts]' => 1,
-      'seckit_ssl[sts_max_age]' => 1000,
-      'seckit_ssl[sts_subdomains]' => 1,
+      'seckit_ssl[hsts]' => 1,
+      'seckit_ssl[hsts_max_age]' => 1000,
+      'seckit_ssl[hsts_subdomains]' => 1,
     );
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $expected = 'max-age=1000; includeSubDomains';
     $this->assertEqual($expected,
-                       $this->drupalGetHeader('StrictTransport-Security'),
+                       $this->drupalGetHeader('Strict-Transport-Security'),
                        t('HTTP Strict Transport Security is disabled'));
   }
 }

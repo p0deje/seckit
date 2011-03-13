@@ -4,10 +4,11 @@
  * @param context
  */
 Drupal.behaviors.seckit = function(context) {
-  seckit_listener_sts($('#edit-seckit-ssl-sts', context));
+  seckit_listener_hsts($('#edit-seckit-ssl-hsts', context));
   seckit_listener_csp($('#edit-seckit-xss-csp-checkbox', context));
-  $('#edit-seckit-ssl-sts', context).click(function() {
-    seckit_listener_sts(this)
+  seckit_listener_origin($('#edit-seckit-csrf-origin', context));
+  $('#edit-seckit-ssl-hsts', context).click(function() {
+    seckit_listener_hsts(this)
   });
   $('#edit-seckit-xss-csp-checkbox', context).click(function() {
     seckit_listener_csp(this)
@@ -19,16 +20,16 @@ Drupal.behaviors.seckit = function(context) {
 
 /**
  * Gets checkbox status and executes necessary functions
- * to Strict-Transport-Security fieldset.
+ * to HTTP Strict Transport Security fieldset.
  *
  * @param element
  */
-function seckit_listener_sts(element) {
+function seckit_listener_hsts(element) {
   if ($(element).is(':checked')) {
-    seckit_listener_enable_sts(element);
+    seckit_listener_enable_hsts(element);
   }
   else {
-    seckit_listener_disable_sts(element);
+    seckit_listener_disable_hsts(element);
   }
 }
 
@@ -121,21 +122,21 @@ function seckit_listener_disable_origin(element) {
 }
 
 /**
- * Enables Strict-Transport-Security form elements.
+ * Enables HTTP Strict Transport Security form elements.
  *
  * @param element
  */
-function seckit_listener_enable_sts(element) {
-  $('#edit-seckit-ssl-sts-max-age').removeAttr('disabled');
-  $('#edit-seckit-ssl-sts-subdomains').removeAttr('disabled');
+function seckit_listener_enable_hsts(element) {
+  $('#edit-seckit-ssl-hsts-max-age').removeAttr('disabled');
+  $('#edit-seckit-ssl-hsts-subdomains').removeAttr('disabled');
 }
 
 /**
- * Disables Strict-Transport-Security form elements.
+ * Disables HTTP Strict Transport Security form elements.
  *
  * @param element
  */
-function seckit_listener_disable_sts(element) {
-  $('#edit-seckit-ssl-sts-max-age').attr('disabled', 'disabled');
-  $('#edit-seckit-ssl-sts-subdomains').attr('disabled', 'disabled');
+function seckit_listener_disable_hsts(element) {
+  $('#edit-seckit-ssl-hsts-max-age').attr('disabled', 'disabled');
+  $('#edit-seckit-ssl-hsts-subdomains').attr('disabled', 'disabled');
 }

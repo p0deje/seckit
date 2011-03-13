@@ -284,29 +284,29 @@ function seckit_admin_form() {
     '#description' => t('Configure various techniques to improve security of SSL/TLS'),
   );
 
-  // enable/disable Strict-Transport-Security (STS)
-  $args['!wiki'] = l(t('Wikipedia'), 'http://en.wikipedia.org/wiki/Strict_Transport_Security');
-  $form['seckit_ssl']['sts'] = array(
+  // enable/disable HTTP Strict Transport Security (HSTS)
+  $args['!wiki'] = l(t('Wikipedia'), 'http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security');
+  $form['seckit_ssl']['hsts'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Strict-Transport-Security'),
-    '#description' => t('Enable Strict-Transport-Security HTTP response header. Strict-Transport-Security (STS) header is proposed to prevent eavesdropping and man-in-the-middle attacks like SSLStrip, when a single non-HTTPS request is enough for credential theft or hijacking. It forces browser to connect to the server in HTTPS-mode only and automatically convert HTTP links into secure before sending request. !wiki has more information about Strict-Transport-Security', $args),
-    '#default_value' => $options['seckit_ssl']['sts'],
+    '#title' => t('HTTP Strict Transport Security'),
+    '#description' => t('Enable Strict-Transport-Security HTTP response header. HTTP Strict Transport Security (HSTS) header is proposed to prevent eavesdropping and man-in-the-middle attacks like SSLStrip, when a single non-HTTPS request is enough for credential theft or hijacking. It forces browser to connect to the server in HTTPS-mode only and automatically convert HTTP links into secure before sending request. !wiki has more information about HSTS', $args),
+    '#default_value' => $options['seckit_ssl']['hsts'],
     '#return_value' => 1,
   );
-  // STS max-age directive
-  $form['seckit_ssl']['sts_max_age'] = array(
+  // HSTS max-age directive
+  $form['seckit_ssl']['hsts_max_age'] = array(
     '#type' => 'textfield',
     '#title' => t('Max-Age'),
     '#description' => t('Specify Max-Age value in seconds. It sets period when user-agent should remember receipt of this header field from this server. Default is 1000.'),
-    '#default_value' => $options['seckit_ssl']['sts_max_age'],
+    '#default_value' => $options['seckit_ssl']['hsts_max_age'],
   );
   // STS includeSubDomains directive
-  $form['seckit_ssl']['sts_subdomains'] = array(
+  $form['seckit_ssl']['hsts_subdomains'] = array(
     '#type' => 'checkbox',
     '#title' => t('Include Subdomains'),
-    '#description' => t('Force Strict-Transport-Security for all subdomains. If enabled, STS policy will be applied for all subdomains.'),
+    '#description' => t('Force HTTP Strict Transport Security for all subdomains. If enabled, HSTS policy will be applied for all subdomains, otherwise only for the main domain.'),
     '#return_value' => 1,
-    '#default_value' => $options['seckit_ssl']['sts_subdomains'],
+    '#default_value' => $options['seckit_ssl']['hsts_subdomains'],
   );
 
   // validation
@@ -316,7 +316,7 @@ function seckit_admin_form() {
 }
 
 /**
- * Validates Content Security Policy and Strict-Transport-Security.
+ * Validates Content Security Policy and HTTP Strict Transport Security.
  */
 function seckit_admin_form_validate($form, &$form_state) {
   // if Content Security Policy is enabled, allow directive must be specified.
@@ -325,14 +325,14 @@ function seckit_admin_form_validate($form, &$form_state) {
   if (($csp_enable == 1) && (!$csp_allow)) {
     form_error($form['seckit_xss']['csp']['allow'], t("You have to set up Content Security Policy allow directive. Default is 'self'."));
   }
-  // if Strict-Transport-Security is enabled, max-age must be specified.
-  // Strict-Transport-Security max-age should only contain digits.
-  $sts_enable = $form_state['values']['seckit_ssl']['sts'];
-  $sts_max_age = $form_state['values']['seckit_ssl']['sts_max_age'];
-  if (($sts_enable == 1) && (!$sts_max_age)) {
-    form_error($form['seckit_ssl']['sts_max_age'], t("You have to set up Max-Age value for Strict-Transport-Security. Default is 1000."));
+  // if HTTP Strict Transport Security is enabled, max-age must be specified.
+  // HSTS max-age should only contain digits.
+  $hsts_enable = $form_state['values']['seckit_ssl']['hsts'];
+  $hsts_max_age = $form_state['values']['seckit_ssl']['hsts_max_age'];
+  if (($hsts_enable == 1) && (!$hsts_max_age)) {
+    form_error($form['seckit_ssl']['hsts_max_age'], t("You have to set up Max-Age value for HTTP Strict Transport Security. Default is 1000."));
   }
-  if (preg_match('/[^0-9]/', $sts_max_age)) {
-    form_error($form['seckit_ssl']['sts_max_age'], t('Only digits are allowed in Strict-Transport-Security Max-Age field.'));
+  if (preg_match('/[^0-9]/', $hsts_max_age)) {
+    form_error($form['seckit_ssl']['hsts_max_age'], t('Only digits are allowed in HTTP Strict Transport Security Max-Age field.'));
   }
 }
