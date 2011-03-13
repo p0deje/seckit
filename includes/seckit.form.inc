@@ -1,11 +1,12 @@
 <?php
-// $Id$
-
 /**
  * @file
  * Administrative interface for SecKit settings.
  */
 
+/**
+ * Forms administration page.
+ */
 function seckit_admin_form() {
   // get default/set options
   $options = _seckit_get_options();
@@ -17,7 +18,7 @@ function seckit_admin_form() {
 
   $form['seckit_description'] = array(
     '#type' => 'item',
-    '#description' => t('Module provides your website with various options to mitigate risks of common web application vulnerabilities like Cross-site Scripting, Cross-site Request Forgery and Clickjacking. It also has some options to improve your SSL/TLS security and fixes Drupal core Upload module issue leading to an easy exploitation of old Internet Explorer MIME sniffer HTML injection vulnerability..')
+    '#description' => t('Module provides your website with various options to mitigate risks of common web application vulnerabilities like Cross-site Scripting, Cross-site Request Forgery and Clickjacking. It also has some options to improve your SSL/TLS security and fixes Drupal core Upload module issue leading to an easy exploitation of old Internet Explorer MIME sniffer HTML injection vulnerability..'),
   );
 
   // main fieldset for XSS
@@ -30,8 +31,8 @@ function seckit_admin_form() {
   );
 
   // fieldset for Content Security Policy (CSP)
-  $args['!link'] = l(t('Mozilla Wiki'), 'https://wiki.mozilla.org/Security/CSP');
-  $description = t('Content Security Policy specifies trustworthy sources of content. You may read more about it at !link.', $args);
+  $args['!wiki'] = l(t('Mozilla Wiki'), 'https://wiki.mozilla.org/Security/CSP');
+  $description = t('Content Security Policy specifies trustworthy sources of content. You may read more about it at !wiki.', $args);
   $form['seckit_xss']['csp'] = array(
     '#type' => 'fieldset',
     '#title' => t('Content Security Policy'),
@@ -51,8 +52,8 @@ function seckit_admin_form() {
   $args['!keywords'] = theme('item_list', $items);
   $items = array('* - load content from any source', '*.example.com - load content from example.com and all its subdomains', 'example.com:* - load content from example.com via any port.  Otherwise, it will use your website default port');
   $args['!wildcards'] = theme('item_list', $items);
-  $args['!link'] = l(t('specification page'), 'https://wiki.mozilla.org/Security/CSP/Specification');
-  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !link.", $args);
+  $args['!spec'] = l(t('specification page'), 'https://wiki.mozilla.org/Security/CSP/Specification');
+  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec.", $args);
   $form['seckit_xss']['csp']['description'] = array(
     '#type' => 'item',
     '#title' => t('Directives'),
@@ -75,7 +76,6 @@ function seckit_admin_form() {
     '#title' => t('options'),
     '#description' => $description,
   );
-
   // CSP img-src directive
   $form['seckit_xss']['csp']['img-src'] = array(
     '#type' => 'textfield',
@@ -132,13 +132,20 @@ function seckit_admin_form() {
     '#title' => t('style-src'),
     '#description' => t('Specify trustworthy sources for stylesheets. Note, that inline stylesheets and style attributes of HTML elements are allowed.'),
   );
+  // CSP frame-ancestors directive
+  $form['seckit_xss']['csp']['frame-ancestors'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $options['seckit_xss']['csp']['frame-ancestors'],
+    '#title' => t('frame-ancestors'),
+    '#description' => t('Specify trustworthy sources to be valid ancestors for embedding your site via &lt;object&gt;, &lt;iframe&gt; and &lt;frame&gt; elements.'),
+  );
 
   // fieldset for X-XSS-Protection
   $form['seckit_xss']['x_xss'] = array(
     '#type' => 'fieldset',
     '#title' => t('X-XSS-Protection'),
     '#tree' => TRUE,
-    '#description' => t('X-XSS-Protection HTTP response header controls Microsoft Internet Explorer 8, Google Chrome and Apple Safari internal XSS filters.'),
+    '#description' => t('X-XSS-Protection HTTP response header controls Microsoft Internet Explorer, Google Chrome and Apple Safari internal XSS filters.'),
   );
   // options for X-XSS-Protection
   $x_xss_protection_options = array(
@@ -148,7 +155,7 @@ function seckit_admin_form() {
   );
   // configure X-XSS-Protection
   $link = l(t("IE's XSS filter security flaws in past"), 'http://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities');
-  $items = array('Disabled - XSS filter will work in default mode', "0 - XSS filter will be disabled for a website. It may be useful because of $link", '1; mode=block - XSS filter will be left enabled, but it will block entire page instead of modifying dangerous content. Enabled by default');
+  $items = array('Disabled - XSS filter will work in default mode', '0 - XSS filter will be disabled for a website. It may be useful because of ' . $link, '1; mode=block - XSS filter will be left enabled, but it will block entire page instead of modifying dangerous content. Enabled by default');
   $args['!values'] = theme('item_list', $items);
   $form['seckit_xss']['x_xss']['select'] = array(
     '#type' => 'select',
@@ -191,7 +198,7 @@ function seckit_admin_form() {
   // main fieldset for CSRF
   $form['seckit_csrf'] = array(
     '#type' => 'fieldset',
-    '#title'=> t('Cross-site Request Forgery'),
+    '#title' => t('Cross-site Request Forgery'),
     '#tree' => TRUE,
     '#collapsible' => TRUE,
     '#description' => t('Configure levels and various techniques of protection from cross-site request forgery attacks'),
@@ -232,8 +239,8 @@ function seckit_admin_form() {
   // configure X-Frame-Options
   $items = array('Disabled - turn off X-Frame-Options', 'SameOrigin - browser allows all the attempts of framing website within its domain. Enabled by default', 'Deny - browser rejects any attempt of framing website');
   $args['!values'] = theme('item_list', $items);
-  $args['!link'] = l(t('MSDN article'), 'http://blogs.msdn.com/b/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx');
-  $description = t("X-Frame-Options HTTP response header controls browser's policy of frame rendering. Possible values: !values You may read more about it at !link.", $args);
+  $args['!msdn'] = l(t('MSDN article'), 'http://blogs.msdn.com/b/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx');
+  $description = t("X-Frame-Options HTTP response header controls browser's policy of frame rendering. Possible values: !values You may read more about it at !msdn.", $args);
   $form['seckit_clickjacking']['x_frame'] = array(
     '#type' => 'select',
     '#title' => t('X-Frame-Options'),
@@ -278,11 +285,11 @@ function seckit_admin_form() {
   );
 
   // enable/disable Strict-Transport-Security (STS)
-  $args['!link'] = l(t('Wikipedia'), 'http://en.wikipedia.org/wiki/Strict_Transport_Security');
+  $args['!wiki'] = l(t('Wikipedia'), 'http://en.wikipedia.org/wiki/Strict_Transport_Security');
   $form['seckit_ssl']['sts'] = array(
     '#type' => 'checkbox',
     '#title' => t('Strict-Transport-Security'),
-    '#description' => t('Enable Strict-Transport-Security HTTP response header. Strict-Transport-Security (STS) header is proposed to prevent eavesdropping and man-in-the-middle attacks like SSLStrip, when a single non-HTTPS request is enough for credential theft or hijacking. It forces browser to connect to the server in HTTPS-mode only and automatically convert HTTP links into secure before sending request. !link has more information about Strict-Transport-Security', $args),
+    '#description' => t('Enable Strict-Transport-Security HTTP response header. Strict-Transport-Security (STS) header is proposed to prevent eavesdropping and man-in-the-middle attacks like SSLStrip, when a single non-HTTPS request is enough for credential theft or hijacking. It forces browser to connect to the server in HTTPS-mode only and automatically convert HTTP links into secure before sending request. !wiki has more information about Strict-Transport-Security', $args),
     '#default_value' => $options['seckit_ssl']['sts'],
     '#return_value' => 1,
   );
@@ -290,7 +297,7 @@ function seckit_admin_form() {
   $form['seckit_ssl']['sts_max_age'] = array(
     '#type' => 'textfield',
     '#title' => t('Max-Age'),
-    '#description' => '<div>' . t('Specify Max-Age value in seconds. It sets period when user-agent should remember receipt of this header field from this server.') . '</div><div>' . t('Default is 1000.') . '</div>',
+    '#description' => t('Specify Max-Age value in seconds. It sets period when user-agent should remember receipt of this header field from this server. Default is 1000.'),
     '#default_value' => $options['seckit_ssl']['sts_max_age'],
   );
   // STS includeSubDomains directive
@@ -310,17 +317,16 @@ function seckit_admin_form() {
 
 /**
  * Validates Content Security Policy and Strict-Transport-Security.
- *
- * If Content Security Policy is enabled, allow directive must be specified.
- * If Strict-Transport-Security is enabled, max-age must be specified.
- * Strict-Transport-Security max-age should only contain digits.
  */
 function seckit_admin_form_validate($form, &$form_state) {
+  // if Content Security Policy is enabled, allow directive must be specified.
   $csp_enable = $form_state['values']['seckit_xss']['csp']['checkbox'];
   $csp_allow = $form_state['values']['seckit_xss']['csp']['allow'];
   if (($csp_enable == 1) && (!$csp_allow)) {
     form_error($form['seckit_xss']['csp']['allow'], t("You have to set up Content Security Policy allow directive. Default is 'self'."));
   }
+  // if Strict-Transport-Security is enabled, max-age must be specified.
+  // Strict-Transport-Security max-age should only contain digits.
   $sts_enable = $form_state['values']['seckit_ssl']['sts'];
   $sts_max_age = $form_state['values']['seckit_ssl']['sts_max_age'];
   if (($sts_enable == 1) && (!$sts_max_age)) {

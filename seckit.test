@@ -1,6 +1,4 @@
 <?php
-// $Id$
-
 /**
  * @file
  * Tests for Security Kit module.
@@ -42,32 +40,32 @@ class SecKitTestCase extends DrupalWebTestCase {
    * Tests disabled X-Frame-Options HTTP response header.
    */
   public function testXFrameOptionsIsDisabled() {
-    $form['seckit_clickjacking[x_frame]'] = '0';
+    $form['seckit_clickjacking[x_frame]'] = 0;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $actual = $this->drupalGetHeader('X-Frame-Options');
-    $this->assertFalse($actual, t('X-Frame-Options is disabled'));
+    $this->assertFalse($this->drupalGetHeader('X-Frame-Options'),
+                       t('X-Frame-Options is disabled'));
   }
 
   /**
    * Tests set to SameOrigin X-Frame-Options HTTP response header.
    */
   public function testXFrameOptionsIsSameOrigin() {
-    $form['seckit_clickjacking[x_frame]'] = '1';
+    $form['seckit_clickjacking[x_frame]'] = 1;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $expected = 'SameOrigin';
-    $actual = $this->drupalGetHeader('X-Frame-Options');
-    $this->assertEqual($expected, $actual, t('X-Frame-Options is set to SameOrigin'));
+    $this->assertEqual('SameOrigin',
+                       $this->drupalGetHeader('X-Frame-Options'),
+                       t('X-Frame-Options is set to SameOrigin'));
   }
 
   /**
    * Tests set to Deny X-Frame-Options HTTP response header.
    */
   public function testXFrameOptionsIsDeny() {
-    $form['seckit_clickjacking[x_frame]'] = '2';
+    $form['seckit_clickjacking[x_frame]'] = 2;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $expected = 'Deny';
-    $actual = $this->drupalGetHeader('X-Frame-Options');
-    $this->assertEqual($expected, $actual, t('X-Frame-Options is set to Deny'));
+    $this->assertEqual('Deny',
+                       $this->drupalGetHeader('X-Frame-Options'),
+                       t('X-Frame-Options is set to Deny'));
   }
 
   /**
@@ -85,12 +83,14 @@ class SecKitTestCase extends DrupalWebTestCase {
       'seckit_xss[csp][frame-src]' => '*',
       'seckit_xss[csp][font-src]' => '*',
       'seckit_xss[csp][xhr-src]' => '*',
-      'seckit_xss[csp][style-src]' => '*'
+      'seckit_xss[csp][style-src]' => '*',
+      'seckit_xss[csp][frame-ancestors]' => '*',
     );
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $expected = 'allow *; options inline-scripts eval-script; img-src *; media-src *; script-src *; object-src *; frame-src *; font-src *; xhr-src *; style-src *';
-    $actual = $this->drupalGetHeader('X-Content-Security-Policy');
-    $this->assertEqual($expected, $actual, t('X-Content-Security has all the directves'));
+    $expected = 'allow *; options inline-scripts eval-script; img-src *; media-src *; script-src *; object-src *; frame-src *; font-src *; xhr-src *; style-src *; frame-ancestors *';
+    $this->assertEqual($expected,
+                       $this->drupalGetHeader('X-Content-Security-Policy'),
+                       t('X-Content-Security has all the directves'));
   }
 
   /**
@@ -99,8 +99,8 @@ class SecKitTestCase extends DrupalWebTestCase {
   public function testXXSSProtectionIsDisabled() {
     $form['seckit_xss[x_xss][select]'] = '0';
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $actual = $this->drupalGetHeader('X-XSS-Protection');
-    $this->assertFalse($actual, t('X-XSS-Protection is disabled'));
+    $this->assertFalse($this->drupalGetHeader('X-XSS-Protection'),
+                       t('X-XSS-Protection is disabled'));
   }
 
   /**
@@ -109,9 +109,9 @@ class SecKitTestCase extends DrupalWebTestCase {
   public function testXXSSProtectionIs0() {
     $form['seckit_xss[x_xss][select]'] = '1';
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $expected = 0;
-    $actual = $this->drupalGetHeader('X-XSS-Protection');
-    $this->assertEqual($expected, $actual, t('X-XSS-Protection is set to 0'));
+    $this->assertEqual(0,
+                       $this->drupalGetHeader('X-XSS-Protection'),
+                       t('X-XSS-Protection is set to 0'));
   }
 
   /**
@@ -120,8 +120,8 @@ class SecKitTestCase extends DrupalWebTestCase {
   public function testXXSSProtectionIs1() {
     $form['seckit_xss[x_xss][select]'] = '1';
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $expected = '1; mode=block';
-    $actual = $this->drupalGetHeader('X-XSS-Protection');
-    $this->assertEqual($expected, $actual, t('X-XSS-Protection is set to 1; mode=block'));
+    $this->assertEqual('1; mode=block',
+                       $this->drupalGetHeader('X-XSS-Protection'),
+                       t('X-XSS-Protection is set to 1; mode=block'));
   }
 }

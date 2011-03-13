@@ -1,7 +1,8 @@
 <?php
-// $Id$
-
-// TODO: hook_install()
+/**
+ * @file
+ * Install/uninstall actions for SecKit.
+ */
 
 /**
  * Implements hook_uninstall()
