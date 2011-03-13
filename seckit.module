@@ -62,6 +62,13 @@ function seckit_init() {
   _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
   _seckit_override_style($options['seckit_clickjacking']['override_style']);
   _seckit_hsts($options['seckit_ssl']['hsts']);
+
+  // load jQuery listener
+  if ($_GET['q'] == 'admin/settings/seckit') {
+    $path = drupal_get_path('module', 'seckit');
+    $listener = $path . '/js/seckit.listener.js';
+    drupal_add_js($listener, 'module');
+  }
 }
 
 /**
