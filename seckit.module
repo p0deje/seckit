@@ -1,6 +1,4 @@
 <?php
-// $Id$
-
 /**
  * @file
  * Allows administrators to improve security of the website.
@@ -57,35 +55,22 @@ function seckit_init() {
   $options = _seckit_get_options();
 
   // execute necessary functions
-  $origin = $options['seckit_csrf']['origin'];
-  _seckit_origin($origin);
-
-  $csp = $options['seckit_xss']['csp']['checkbox'];
-  _seckit_csp($csp);
-
-  $x_xss = $options['seckit_xss']['x_xss']['select'];
-  _seckit_x_xss($x_xss);
-
-  $x_frame = $options['seckit_clickjacking']['x_frame'];
-  _seckit_x_frame($x_frame);
-
-  $js_css_noscript = $options['seckit_clickjacking']['js_css_noscript'];
-  _seckit_js_css_noscript($js_css_noscript);
-
-  $override_style = $options['seckit_clickjacking']['override_style'];
-  _seckit_override_style($override_style);
-
-  $sts = $options['seckit_ssl']['sts'];
-  _seckit_sts($sts);
+  _seckit_origin($options['seckit_csrf']['origin']);
+  _seckit_csp($options['seckit_xss']['csp']['checkbox']);
+  _seckit_x_xss($options['seckit_xss']['x_xss']['select']);
+  _seckit_x_frame($options['seckit_clickjacking']['x_frame']);
+  _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
+  _seckit_override_style($options['seckit_clickjacking']['override_style']);
+  _seckit_sts($options['seckit_ssl']['sts']);
 }
 
 /**
  * Sends X-Content-Security-Policy HTTP header.
  *
  * Header specifies Content Security Policy (CSP) for a website,
- * which is used by Firefox to allow/block content from selected sources.
+ * which is used to allow/block content from selected sources.
  *
- * Implementation of CSP is based on specification available at
+ * Based on specification available at
  * https://wiki.mozilla.org/Security/CSP/Specification
  */
 function _seckit_csp($apply) {
@@ -103,6 +88,7 @@ function _seckit_csp($apply) {
     $csp_font_src = $options['font-src'];
     $csp_xhr_src = $options['xhr-src'];
     $csp_style_src = $options['style-src'];
+    $csp_frame_ancestors = $options['frame-ancestors'];
 
     // prepare directives array
     $directives = array();
@@ -135,6 +121,9 @@ function _seckit_csp($apply) {
     }
     if ($csp_style_src) {
       $directives[] = 'style-src ' . $csp_style_src;
+    }
+    if ($csp_frame_ancestors) {
+      $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
     }
 
     // send CSP response header with specified directives
@@ -248,7 +237,7 @@ function _seckit_ie_mime() {
       $safe_extensions = preg_replace(SECKIT_IE_MIME_REGEX, ' ', $anonymous_extensions);
       variable_set('upload_extensions_1', trim($safe_extensions));
       // print message
-      drupal_set_message('Security Kit successfully removed txt from allowed extensions.');
+      drupal_set_message(t('Security Kit successfully removed txt from allowed extensions.'));
       break;
 
     case SECKIT_IE_MIME_SECURE:
@@ -260,11 +249,11 @@ function _seckit_ie_mime() {
       $unsafe_extensions = $anonymous_extensions . ' txt';
       variable_set('upload_extensions_1', $unsafe_extensions);
       // print message
-      drupal_set_message('Security Kit added txt to allowed extensions. Remember: it may lead to HTML injection.', 'warning');
+      drupal_set_message(t('Security Kit added txt to allowed extensions. Remember: it may lead to HTML injection.'), 'warning');
       break;
 
     case SECKIT_IE_MIME_FAILED:
-      drupal_set_message('Upload module is not enabled. No changes were made.', 'error');
+      drupal_set_message(t('Upload module is not enabled. No changes were made.'), 'error');
       break;
   }
 }
@@ -298,7 +287,7 @@ function _seckit_origin($apply) {
       if (!in_array($origin, $whitelist)) {
         $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
         drupal_access_denied(); // send 403 response and show Access Denied page
-        watchdog('seckit', t('Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.'), array('@ip' => $_SERVER['REMOTE_ADDR'], '@origin' => $_SERVER['HTTP_ORIGIN']), WATCHDOG_ERROR); // log event
+        watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', array('@ip' => $_SERVER['REMOTE_ADDR'], '@origin' => $_SERVER['HTTP_ORIGIN']), WATCHDOG_ERROR); // log event
         exit; // abort request
       }
     }
@@ -452,6 +441,7 @@ function _seckit_get_options() {
     'font-src' => '',
     'xhr-src' => '',
     'style-src' => '',
+    'frame-ancestors' => '',
   );
   $default['seckit_csrf'] = array(
     'origin' => 1,

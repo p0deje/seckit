@@ -1,5 +1,3 @@
-// $Id$
-
 /**
  * Implements behaviors.
  *
@@ -80,6 +78,7 @@ function seckit_listener_enable_csp(element) {
   $('#edit-seckit-xss-csp-font-src').removeAttr('disabled');
   $('#edit-seckit-xss-csp-xhr-src').removeAttr('disabled');
   $('#edit-seckit-xss-csp-style-src').removeAttr('disabled');
+  $('#edit-seckit-xss-csp-frame-ancestors').removeAttr('disabled');
   $('label[for="edit-seckit-xss-csp-allow"]').append('<span title="' + Drupal.t('This field is required.') + '" class="form-required">*</span>');
 }
 
@@ -99,6 +98,7 @@ function seckit_listener_disable_csp(element) {
   $('#edit-seckit-xss-csp-font-src').attr('disabled', 'disabled');
   $('#edit-seckit-xss-csp-xhr-src').attr('disabled', 'disabled');
   $('#edit-seckit-xss-csp-style-src').attr('disabled', 'disabled');
+  $('#edit-seckit-xss-csp-frame-ancestors').attr('disabled', 'disabled');
   $('span[title="' + Drupal.t('This field is required.') + '"]').remove();
 }
 
