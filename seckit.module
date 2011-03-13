@@ -8,13 +8,13 @@
  * Necessary constants.
  */
 define('SECKIT_X_XSS_DISABLE', 0); // disable X-XSS-Protection HTTP header
-define('SECKIT_X_XSS_0', 1);       // set X-XSS-Protection HTTP header to 0
-define('SECKIT_X_XSS_1', 2);       // set X-XSS-Protection HTTP header to 1; mode=block
-define('SECKIT_X_FRAME_DISABLE', 0);    // disable X-Frame-Options HTTP header
+define('SECKIT_X_XSS_0', 1); // set X-XSS-Protection HTTP header to 0
+define('SECKIT_X_XSS_1', 2); // set X-XSS-Protection HTTP header to 1; mode=block
+define('SECKIT_X_FRAME_DISABLE', 0); // disable X-Frame-Options HTTP header
 define('SECKIT_X_FRAME_SAMEORIGIN', 1); // set X-Frame-Options HTTP header to SameOrigin
-define('SECKIT_X_FRAME_DENY', 2);       // set X-Frame-Options HTTP header to Deny
-define('SECKIT_IE_MIME_FAILED', 0);   // Upload module is not enabled
-define('SECKIT_IE_MIME_SECURE', 1);   // txt is not in allowed extensions list
+define('SECKIT_X_FRAME_DENY', 2); // set X-Frame-Options HTTP header to Deny
+define('SECKIT_IE_MIME_FAILED', 0); // Upload module is not enabled
+define('SECKIT_IE_MIME_SECURE', 1); // txt is not in allowed extensions list
 define('SECKIT_IE_MIME_INSECURE', 2); // txt is in allowed extensions list
 define('SECKIT_IE_MIME_REGEX', '/(\s|^)txt(\s|$)/'); // regular expression for seckit_ie_mime functions
 
@@ -423,7 +423,7 @@ function _seckit_hsts($apply) {
     // prepare HSTS header value
     $max_age = $options['seckit_ssl']['hsts_max_age'];
     $subdomains = $options['seckit_ssl']['hsts_subdomains'];
-    $header[] = "max-age=$max_age";
+    $header[] = 'max-age=' . $max_age;
     if ($subdomains) {
       $header[] = 'includeSubDomains';
     }
