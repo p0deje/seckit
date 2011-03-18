@@ -43,7 +43,7 @@ class SecKitTestCase extends DrupalWebTestCase {
     $form['seckit_xss[csp][checkbox]'] = 0;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $this->assertFalse($this->drupalGetHeader('X-Content-Security-Policy'),
-                       t('Content Security Policy is disabled'));
+      t('Content Security Policy is disabled'));
   }
 
   /**
@@ -66,9 +66,8 @@ class SecKitTestCase extends DrupalWebTestCase {
     );
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $expected = 'allow *; options inline-scripts eval-script; img-src *; media-src *; script-src *; object-src *; frame-src *; font-src *; xhr-src *; style-src *; frame-ancestors *';
-    $this->assertEqual($expected,
-                       $this->drupalGetHeader('X-Content-Security-Policy'),
-                       t('X-Content-Security has all the directves'));
+    $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
+      t('X-Content-Security has all the directves'));
   }
 
   /**
@@ -181,14 +180,76 @@ class SecKitTestCase extends DrupalWebTestCase {
    * Tests JS + CSS + Noscript protection.
    */
   public function testJSCSSNoscript() {
-    // TODO: add test
+    $form['seckit_clickjacking[js_css_noscript]'] = 1;
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $path = base_path() . drupal_get_path('module', 'seckit');
+    $code = <<< EOT
+      // close script tag for SecKit protection
+      //--><!]]>
+      </script>
+      <script type="text/javascript" src="$path/js/seckit.document_write.js"></script>
+      <link type="text/css" rel="stylesheet" id="seckit-clickjacking-no-body" media="all" href="$path/css/seckit.no_body.css" />
+      <! stop SecKit protection -->
+      <script type="text/javascript">
+      <!--//--><![CDATA[//><!--
+      // open script tag to avoid syntax errors
+EOT;
+    $this->assertRaw($code,
+      t('Protection with seckit.document_write.js and seckit.no_body.css works.'));
+    $code = <<< EOT
+      // close script tag for SecKit protection
+      //--><!]]>
+      </script>
+      <noscript>
+      <style>
+        /**
+         * Override style of seckit.no_body.css to show div with message
+         */
+        body {
+          display: block !important;
+        }
+        /**
+         * Set style of div with message
+         * "Sorry, you need to enable JavaScript to visit this website."
+         * so it hides all site behind itself.
+         */
+        #seckit-noscript-tag {
+          background-color: white;
+          position: fixed;
+          top: 0px;
+          left: 0px;
+          height: 100% !important;
+          width: 100% !important;
+          z-index: 999 !important;
+          font-family: sans-serif;
+          font-weight: bold;
+          color: red;
+          text-align: center;
+          padding-top: 20px;
+        }
+      </style>
+      <div id="seckit-noscript-tag">
+        <h1>Sorry, you need to enable JavaScript to visit this website.</h1>
+      </div>
+      </noscript>
+      <script type="text/javascript">
+      <!--//--><![CDATA[//><!--
+      // open script tag to avoid syntax errors
+EOT;
+    $this->assertRaw($code,
+      t('Protection with seckit-noscript-tag works.'));
   }
 
   /**
    * Tests style override for frames, objects and embeds.
    */
   public function testStyleOverride() {
-    // TODO: add test
+    $form['seckit_clickjacking[override_style]'] = 1;
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $path = drupal_get_path('module', 'seckit');
+    $regex = "/\<link type=\"text\/css\" rel=\"stylesheet\" media=\"all\" href=\"$path\/seckit\.override_style\.css.+\"\>/";
+    $this->assertPattern($regex,
+      t('Style override CSS is loaded.'));
   }
 
  /**
@@ -198,7 +259,7 @@ class SecKitTestCase extends DrupalWebTestCase {
     $form['seckit_ssl[hsts]'] = 0;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $this->assertFalse($this->drupalGetHeader('Strict-Transport-Security'),
-                       t('HTTP Strict Transport Security is disabled'));
+      t('HTTP Strict Transport Security is disabled'));
   }
 
  /**
@@ -213,7 +274,7 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $expected = 'max-age=1000; includeSubDomains';
     $this->assertEqual($expected,
-                       $this->drupalGetHeader('Strict-Transport-Security'),
-                       t('HTTP Strict Transport Security is disabled'));
+      $this->drupalGetHeader('Strict-Transport-Security'),
+      t('HTTP Strict Transport Security is disabled'));
   }
 }
