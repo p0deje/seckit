@@ -469,7 +469,7 @@ function _seckit_get_options() {
   $result['seckit_ssl'] = variable_get('seckit_ssl', $default['seckit_ssl']);
   // enable Content Security Policy (CSP)
   if (!isset($result['seckit_xss']['csp']['checkbox'])) {
-    $result['seckit_xss']['csp']['checkbox'] = 1;
+    $result['seckit_xss']['csp']['checkbox'] = 0;
   }
   // set CSP allow directive to self
   if (!isset($result['seckit_xss']['csp']['allow'])) {
