@@ -48,7 +48,7 @@ function seckit_menu() {
   $items['admin/settings/seckit/csp-report'] = array(
     'page callback' => '_seckit_csp_report',
     'access arguments' => array('access content'),
-    //'type' => MENU_CALLBACK,
+    'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -380,8 +380,19 @@ function _seckit_x_frame($apply) {
  */
 function _seckit_js_css_noscript($apply) {
   if ($apply) {
-    $path = base_path() . drupal_get_path('module', 'seckit');
-    $code = <<< EOT
+    drupal_add_js(_seckit_get_js_css_code(), 'inline', 'header');
+    drupal_add_js(_seckit_get_noscript_code(), 'inline', 'footer');
+  }
+}
+
+/**
+ * Gets JavaScript and CSS code.
+ *
+ * @return string
+ */
+function _seckit_get_js_css_code() {
+  $path = base_path() . drupal_get_path('module', 'seckit');
+  return <<< EOT
       // close script tag for SecKit protection
       //--><!]]>
       </script>
@@ -392,8 +403,15 @@ function _seckit_js_css_noscript($apply) {
       <!--//--><![CDATA[//><!--
       // open script tag to avoid syntax errors
 EOT;
-    drupal_add_js($code, 'inline', 'header');
-    $code = <<< EOT
+}
+
+/**
+ * Gets Noscript code.
+ *
+ * @return string
+ */
+function _seckit_get_noscript_code() {
+  return <<< EOT
       // close script tag for SecKit protection
       //--><!]]>
       </script>
@@ -433,8 +451,6 @@ EOT;
       <!--//--><![CDATA[//><!--
       // open script tag to avoid syntax errors
 EOT;
-    drupal_add_js($code, 'inline', 'footer');
-  }
 }
 
 /**

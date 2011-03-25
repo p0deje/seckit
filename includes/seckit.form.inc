@@ -47,7 +47,7 @@ function seckit_admin_form() {
   $form['seckit_xss']['csp']['report-only'] = array(
     '#type' => 'checkbox',
     '#default_value' => $options['seckit_xss']['csp']['report-only'],
-    '#title' => t('Report-only'),
+    '#title' => t('Report Only'),
     '#return_value' => 1,
     '#description' => t('Use Content Security Policy in report-only mode. In this case, violations of policies will only be reported, not blocked. Use this while configuring policies. Reports are logged to watchdog.'),
   );
