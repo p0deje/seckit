@@ -11,14 +11,10 @@ function seckit_admin_form() {
   // get default/set options
   $options = _seckit_get_options();
 
-  // load jQuery listener for settings page
-  $path = drupal_get_path('module', 'seckit');
-  $listener = "$path/js/seckit.listener.js";
-  drupal_add_js($listener, 'module');
-
+  // main description
   $form['seckit_description'] = array(
     '#type' => 'item',
-    '#description' => t('Module provides your website with various options to mitigate risks of common web application vulnerabilities like Cross-site Scripting, Cross-site Request Forgery and Clickjacking. It also has some options to improve your SSL/TLS security and fixes Drupal core Upload module issue leading to an easy exploitation of old Internet Explorer MIME sniffer HTML injection vulnerability..'),
+    '#description' => t('Module provides your website with various options to mitigate risks of common web application vulnerabilities like Cross-site Scripting, Cross-site Request Forgery and Clickjacking. It also has some options to improve your SSL/TLS security and fixes Drupal core Upload module issue leading to an easy exploitation of old Internet Explorer MIME sniffer HTML injection vulnerability.'),
   );
 
   // main fieldset for XSS
@@ -45,7 +41,15 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_xss']['csp']['checkbox'],
     '#title' => t('X-Content-Security-Policy'),
     '#return_value' => 1,
-    '#description' => t('Send X-Content-Security-Policy HTTP response header with the list of content security policy directives.'),
+    '#description' => t('Send X-Content-Security-Policy HTTP response header with the list of Content Security Policy directives.'),
+  );
+  // CSP report-only mode
+  $form['seckit_xss']['csp']['report-only'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => $options['seckit_xss']['csp']['report-only'],
+    '#title' => t('Report Only'),
+    '#return_value' => 1,
+    '#description' => t('Use Content Security Policy in report-only mode. In this case, violations of policies will only be reported, not blocked. Use this while configuring policies. Reports are logged to watchdog.'),
   );
   // CSP description
   $items = array("'self' - allow content only from your domain", "'none' - block content from any source");
@@ -53,7 +57,8 @@ function seckit_admin_form() {
   $items = array('* - load content from any source', '*.example.com - load content from example.com and all its subdomains', 'example.com:* - load content from example.com via any port.  Otherwise, it will use your website default port');
   $args['!wildcards'] = theme('item_list', $items);
   $args['!spec'] = l(t('specification page'), 'https://wiki.mozilla.org/Security/CSP/Specification');
-  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec.", $args);
+  $args['!bookmarklet'] = l(t('special bookmarklet'), 'http://brandon.sternefamily.net/posts/2010/10/content-security-policy-recommendation-bookmarklet/');
+  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec. You may also use !bookmarklet to figure out necessary policies.", $args);
   $form['seckit_xss']['csp']['description'] = array(
     '#type' => 'item',
     '#title' => t('Directives'),
@@ -138,6 +143,13 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_xss']['csp']['frame-ancestors'],
     '#title' => t('frame-ancestors'),
     '#description' => t('Specify trustworthy sources to be valid ancestors for embedding your site via &lt;object&gt;, &lt;iframe&gt; and &lt;frame&gt; elements.'),
+  );
+  // CSP report-uri directive
+  $form['seckit_xss']['csp']['report-uri'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $options['seckit_xss']['csp']['report-uri'],
+    '#title' => t('report-uri'),
+    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another rerport place. Default is admin/settings/seckit/csp-report.'),
   );
 
   // fieldset for X-XSS-Protection
@@ -284,29 +296,29 @@ function seckit_admin_form() {
     '#description' => t('Configure various techniques to improve security of SSL/TLS'),
   );
 
-  // enable/disable Strict-Transport-Security (STS)
-  $args['!wiki'] = l(t('Wikipedia'), 'http://en.wikipedia.org/wiki/Strict_Transport_Security');
-  $form['seckit_ssl']['sts'] = array(
+  // enable/disable HTTP Strict Transport Security (HSTS)
+  $args['!wiki'] = l(t('Wikipedia'), 'http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security');
+  $form['seckit_ssl']['hsts'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Strict-Transport-Security'),
-    '#description' => t('Enable Strict-Transport-Security HTTP response header. Strict-Transport-Security (STS) header is proposed to prevent eavesdropping and man-in-the-middle attacks like SSLStrip, when a single non-HTTPS request is enough for credential theft or hijacking. It forces browser to connect to the server in HTTPS-mode only and automatically convert HTTP links into secure before sending request. !wiki has more information about Strict-Transport-Security', $args),
-    '#default_value' => $options['seckit_ssl']['sts'],
+    '#title' => t('HTTP Strict Transport Security'),
+    '#description' => t('Enable Strict-Transport-Security HTTP response header. HTTP Strict Transport Security (HSTS) header is proposed to prevent eavesdropping and man-in-the-middle attacks like SSLStrip, when a single non-HTTPS request is enough for credential theft or hijacking. It forces browser to connect to the server in HTTPS-mode only and automatically convert HTTP links into secure before sending request. !wiki has more information about HSTS', $args),
+    '#default_value' => $options['seckit_ssl']['hsts'],
     '#return_value' => 1,
   );
-  // STS max-age directive
-  $form['seckit_ssl']['sts_max_age'] = array(
+  // HSTS max-age directive
+  $form['seckit_ssl']['hsts_max_age'] = array(
     '#type' => 'textfield',
     '#title' => t('Max-Age'),
     '#description' => t('Specify Max-Age value in seconds. It sets period when user-agent should remember receipt of this header field from this server. Default is 1000.'),
-    '#default_value' => $options['seckit_ssl']['sts_max_age'],
+    '#default_value' => $options['seckit_ssl']['hsts_max_age'],
   );
   // STS includeSubDomains directive
-  $form['seckit_ssl']['sts_subdomains'] = array(
+  $form['seckit_ssl']['hsts_subdomains'] = array(
     '#type' => 'checkbox',
     '#title' => t('Include Subdomains'),
-    '#description' => t('Force Strict-Transport-Security for all subdomains. If enabled, STS policy will be applied for all subdomains.'),
+    '#description' => t('Force HTTP Strict Transport Security for all subdomains. If enabled, HSTS policy will be applied for all subdomains, otherwise only for the main domain.'),
     '#return_value' => 1,
-    '#default_value' => $options['seckit_ssl']['sts_subdomains'],
+    '#default_value' => $options['seckit_ssl']['hsts_subdomains'],
   );
 
   // validation
@@ -316,7 +328,7 @@ function seckit_admin_form() {
 }
 
 /**
- * Validates Content Security Policy and Strict-Transport-Security.
+ * Validates Content Security Policy and HTTP Strict Transport Security.
  */
 function seckit_admin_form_validate($form, &$form_state) {
   // if Content Security Policy is enabled, allow directive must be specified.
@@ -325,14 +337,14 @@ function seckit_admin_form_validate($form, &$form_state) {
   if (($csp_enable == 1) && (!$csp_allow)) {
     form_error($form['seckit_xss']['csp']['allow'], t("You have to set up Content Security Policy allow directive. Default is 'self'."));
   }
-  // if Strict-Transport-Security is enabled, max-age must be specified.
-  // Strict-Transport-Security max-age should only contain digits.
-  $sts_enable = $form_state['values']['seckit_ssl']['sts'];
-  $sts_max_age = $form_state['values']['seckit_ssl']['sts_max_age'];
-  if (($sts_enable == 1) && (!$sts_max_age)) {
-    form_error($form['seckit_ssl']['sts_max_age'], t("You have to set up Max-Age value for Strict-Transport-Security. Default is 1000."));
+  // if HTTP Strict Transport Security is enabled, max-age must be specified.
+  // HSTS max-age should only contain digits.
+  $hsts_enable = $form_state['values']['seckit_ssl']['hsts'];
+  $hsts_max_age = $form_state['values']['seckit_ssl']['hsts_max_age'];
+  if (($hsts_enable == 1) && (!$hsts_max_age)) {
+    form_error($form['seckit_ssl']['hsts_max_age'], t("You have to set up Max-Age value for HTTP Strict Transport Security. Default is 1000."));
   }
-  if (preg_match('/[^0-9]/', $sts_max_age)) {
-    form_error($form['seckit_ssl']['sts_max_age'], t('Only digits are allowed in Strict-Transport-Security Max-Age field.'));
+  if (preg_match('/[^0-9]/', $hsts_max_age)) {
+    form_error($form['seckit_ssl']['hsts_max_age'], t('Only digits are allowed in HTTP Strict Transport Security Max-Age field.'));
   }
 }

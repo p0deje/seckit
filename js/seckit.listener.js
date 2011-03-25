@@ -1,141 +1,83 @@
-/**
- * Implements behaviors.
- *
- * @param context
- */
-Drupal.behaviors.seckit = function(context) {
-  seckit_listener_sts($('#edit-seckit-ssl-sts', context));
-  seckit_listener_csp($('#edit-seckit-xss-csp-checkbox', context));
-  $('#edit-seckit-ssl-sts', context).click(function() {
-    seckit_listener_sts(this)
+Drupal.behaviors.seckit = function (context) {
+  seckit_listener_hsts(context);
+  seckit_listener_csp(context);
+  seckit_listener_origin(context);
+  $('#edit-seckit-ssl-hsts', context).click(function () {
+    seckit_listener_hsts(context)
   });
-  $('#edit-seckit-xss-csp-checkbox', context).click(function() {
-    seckit_listener_csp(this)
+  $('#edit-seckit-xss-csp-checkbox', context).click(function () {
+    seckit_listener_csp(context)
   });
-  $('#edit-seckit-csrf-origin', context).click(function() {
-    seckit_listener_origin(this)
+  $('#edit-seckit-csrf-origin', context).click(function () {
+    seckit_listener_origin(context)
   });
 }
 
 /**
- * Gets checkbox status and executes necessary functions
- * to Strict-Transport-Security fieldset.
- *
- * @param element
+ * Adds/removes attributes for input fields in
+ * SSL/TLS fieldset for HTTP Strict Transport Security.
  */
-function seckit_listener_sts(element) {
-  if ($(element).is(':checked')) {
-    seckit_listener_enable_sts(element);
+function seckit_listener_hsts(context) {
+  if ($('#edit-seckit-ssl-hsts').is(':checked')) {
+    $('#edit-seckit-ssl-hsts-max-age', context).removeAttr('disabled');
+    $('#edit-seckit-ssl-hsts-subdomains', context).removeAttr('disabled');
+    $('label[for="edit-seckit-ssl-hsts-max-age"]', context).append('<span title="' + Drupal.t('This field is required.') + '" class="form-required">*</span>');
   }
   else {
-    seckit_listener_disable_sts(element);
+    $('#edit-seckit-ssl-hsts-max-age', context).attr('disabled', 'disabled');
+    $('#edit-seckit-ssl-hsts-subdomains', context).attr('disabled', 'disabled');
+    $('label[for="edit-seckit-ssl-hsts-max-age"] > span', context).remove();
   }
 }
 
 /**
- * Gets checkbox status and executes necessary functions
- * to Content Security Policy fieldset.
- *
- * @param element
+ * Adds/removes attributes for input fields in
+ * Content Security Policy fieldset.
  */
-function seckit_listener_csp(element) {
-  if ($(element).is(':checked')) {
-    seckit_listener_enable_csp(element);
-  }
-  else {
-    seckit_listener_disable_csp(element);
-  }
-}
-
-/**
- * Gets checkbox status and executes necessary functions
- * to Origin fieldset.
- *
- * @param element
- */
-function seckit_listener_origin(element) {
-  if ($(element).is(':checked')) {
-    seckit_listener_enable_origin(element);
+function seckit_listener_csp(context) {
+  if ($('#edit-seckit-xss-csp-checkbox').is(':checked')) {
+    $('#edit-seckit-xss-csp-report-only', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-allow', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-options', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-img-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-media-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-script-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-object-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-frame-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-font-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-xhr-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-style-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-frame-ancestors', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-report-uri', context).removeAttr('disabled');
+    $('label[for="edit-seckit-xss-csp-allow"]', context).append('<span title="' + Drupal.t('This field is required.') + '" class="form-required">*</span>');
   }
   else {
-    seckit_listener_disable_origin(element);
+    $('#edit-seckit-xss-csp-report-only', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-allow', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-options', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-img-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-media-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-script-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-object-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-frame-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-font-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-xhr-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-style-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-frame-ancestors', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-report-uri', context).attr('disabled', 'disabled');
+    $('label[for="edit-seckit-xss-csp-allow"] > span', context).remove();
   }
 }
 
 /**
- * Enables Content Security Policy form elements.
- *
- * @param element
+ * Adds/removes attributes for input fields in
+ * Cross-site Request Forgery fieldset for HTTP Origin.
  */
-function seckit_listener_enable_csp(element) {
-  $('#edit-seckit-xss-csp-allow').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-options').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-img-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-media-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-script-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-object-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-frame-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-font-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-xhr-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-style-src').removeAttr('disabled');
-  $('#edit-seckit-xss-csp-frame-ancestors').removeAttr('disabled');
-  $('label[for="edit-seckit-xss-csp-allow"]').append('<span title="' + Drupal.t('This field is required.') + '" class="form-required">*</span>');
-}
-
-/**
- * Disables Content Security Policy form elements.
- *
- * @param element
- */
-function seckit_listener_disable_csp(element) {
-  $('#edit-seckit-xss-csp-allow').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-options').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-img-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-media-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-script-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-object-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-frame-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-font-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-xhr-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-style-src').attr('disabled', 'disabled');
-  $('#edit-seckit-xss-csp-frame-ancestors').attr('disabled', 'disabled');
-  $('span[title="' + Drupal.t('This field is required.') + '"]').remove();
-}
-
-/**
- * Enables Origin form elements.
- *
- * @param element
- */
-function seckit_listener_enable_origin(element) {
-  $('#edit-seckit-csrf-origin-whitelist').removeAttr('disabled');
-}
-
-/**
- * Disables Origin form elements.
- *
- * @param element
- */
-function seckit_listener_disable_origin(element) {
-  $('#edit-seckit-csrf-origin-whitelist').attr('disabled', 'disabled');
-}
-
-/**
- * Enables Strict-Transport-Security form elements.
- *
- * @param element
- */
-function seckit_listener_enable_sts(element) {
-  $('#edit-seckit-ssl-sts-max-age').removeAttr('disabled');
-  $('#edit-seckit-ssl-sts-subdomains').removeAttr('disabled');
-}
-
-/**
- * Disables Strict-Transport-Security form elements.
- *
- * @param element
- */
-function seckit_listener_disable_sts(element) {
-  $('#edit-seckit-ssl-sts-max-age').attr('disabled', 'disabled');
-  $('#edit-seckit-ssl-sts-subdomains').attr('disabled', 'disabled');
+function seckit_listener_origin(context) {
+  if ($('#edit-seckit-csrf-origin').is(':checked')) {
+    $('#edit-seckit-csrf-origin-whitelist', context).removeAttr('disabled');
+  }
+  else {
+    $('#edit-seckit-csrf-origin-whitelist', context).attr('disabled', 'disabled');
+  }
 }
