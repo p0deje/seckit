@@ -38,11 +38,17 @@ function seckit_menu() {
     'access arguments' => array('administer seckit'),
     'file' => 'includes/seckit.form.inc',
   );
-  // menu callback for AHAH
+  // menu callback for IE MIME-sniffer AHAH
   $items['admin/settings/seckit/mime'] = array(
     'page callback' => '_seckit_ie_mime_js',
     'access arguments' => array('administer seckit'),
     'type' => MENU_CALLBACK,
+  );
+  // menu callback for CSP reporting
+  $items['admin/settings/seckit/csp-report'] = array(
+    'page callback' => '_seckit_csp_report',
+    'access arguments' => array('access content'),
+    //'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -85,6 +91,7 @@ function _seckit_csp($apply) {
     // get default/set options
     $options = _seckit_get_options();
     $options = $options['seckit_xss']['csp'];
+    $csp_report_only = $options['report-only'];
     $csp_allow = $options['allow'];
     $csp_options = $options['options'];
     $csp_img_src = $options['img-src'];
@@ -96,8 +103,9 @@ function _seckit_csp($apply) {
     $csp_xhr_src = $options['xhr-src'];
     $csp_style_src = $options['style-src'];
     $csp_frame_ancestors = $options['frame-ancestors'];
+    $csp_report_uri = $options['report-uri'];
 
-    // prepare directives array
+    // prepare directives
     $directives = array();
     if ($csp_allow) {
       $directives[] = 'allow ' . $csp_allow;
@@ -132,10 +140,46 @@ function _seckit_csp($apply) {
     if ($csp_frame_ancestors) {
       $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
     }
-
-    // send CSP response header with specified directives
+    if ($csp_report_uri) {
+      $directives[] = 'report-uri ' . $csp_report_uri;
+    }
     $directives = implode('; ', $directives);
-    drupal_set_header('X-Content-Security-Policy: ' . $directives);
+
+    // send HTTP response header
+    if ($csp_report_only) {
+      drupal_set_header('X-Content-Security-Policy-Report-Only: ' . $directives); // use report-only mode
+    }
+    else {
+      drupal_set_header('X-Content-Security-Policy: ' . $directives);
+    }
+  }
+}
+
+/**
+ * Reports CSP violations to watchdog.
+ */
+function _seckit_csp_report() {
+  // we should only allow POST data with application/json content type
+  $method = $_SERVER['REQUEST_METHOD'];
+  $json_type = strstr($_SERVER['CONTENT_TYPE'], 'application/json');
+  $length = $_SERVER['CONTENT_LENGTH'];
+  if (($method == 'POST') && ($json_type) && ($length > 0)) {
+    // get and parse report
+    $reports = file_get_contents('php://input');
+    $reports = json_decode($reports);
+    // log to watchdog
+    foreach ($reports as $report) {
+      $report = (array) $report; // convert object to array
+      // prepare information
+      $message = t('CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Request: @request. <br /> Request headers: @request_headers');
+      $info = array(
+        '@directive' => $report['violated-directive'],
+        '@request' => $report['request'],
+        '@request_headers' => $report['request-headers'],
+        '@blocked_uri' => $report['blocked-uri'],
+      );
+      watchdog('seckit', $message, $info, WATCHDOG_WARNING);
+    }
   }
 }
 
@@ -439,6 +483,7 @@ function _seckit_hsts($apply) {
 function _seckit_get_options() {
   // set default options
   $default['seckit_xss']['csp'] = array(
+    'report-only' => 0,
     'options' => '',
     'img-src' => '',
     'media-src' => '',
@@ -474,6 +519,10 @@ function _seckit_get_options() {
   // set CSP allow directive to self
   if (!isset($result['seckit_xss']['csp']['allow'])) {
     $result['seckit_xss']['csp']['allow'] = "'self'";
+  }
+  // set CSP report-uri directive to menu callback
+  if (!isset($result['seckit_xss']['csp']['report-uri'])) {
+    $result['seckit_xss']['csp']['report-uri'] = 'admin/settings/seckit/csp-report';
   }
   // set X-XSS-Protection header to 1; mode=block
   if (!isset($result['seckit_xss']['x_xss']['select'])) {

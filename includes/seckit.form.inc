@@ -41,7 +41,15 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_xss']['csp']['checkbox'],
     '#title' => t('X-Content-Security-Policy'),
     '#return_value' => 1,
-    '#description' => t('Send X-Content-Security-Policy HTTP response header with the list of content security policy directives.'),
+    '#description' => t('Send X-Content-Security-Policy HTTP response header with the list of Content Security Policy directives.'),
+  );
+  // CSP report-only mode
+  $form['seckit_xss']['csp']['report-only'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => $options['seckit_xss']['csp']['report-only'],
+    '#title' => t('Report-only'),
+    '#return_value' => 1,
+    '#description' => t('Use Content Security Policy in report-only mode. In this case, violations of policies will only be reported, not blocked. Use this while configuring policies. Reports are logged to watchdog.'),
   );
   // CSP description
   $items = array("'self' - allow content only from your domain", "'none' - block content from any source");
@@ -49,7 +57,8 @@ function seckit_admin_form() {
   $items = array('* - load content from any source', '*.example.com - load content from example.com and all its subdomains', 'example.com:* - load content from example.com via any port.  Otherwise, it will use your website default port');
   $args['!wildcards'] = theme('item_list', $items);
   $args['!spec'] = l(t('specification page'), 'https://wiki.mozilla.org/Security/CSP/Specification');
-  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec.", $args);
+  $args['!bookmarklet'] = l(t('special bookmarklet'), 'http://brandon.sternefamily.net/posts/2010/10/content-security-policy-recommendation-bookmarklet/');
+  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec. You may also use !bookmarklet to figure out necessary policies.", $args);
   $form['seckit_xss']['csp']['description'] = array(
     '#type' => 'item',
     '#title' => t('Directives'),
@@ -134,6 +143,13 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_xss']['csp']['frame-ancestors'],
     '#title' => t('frame-ancestors'),
     '#description' => t('Specify trustworthy sources to be valid ancestors for embedding your site via &lt;object&gt;, &lt;iframe&gt; and &lt;frame&gt; elements.'),
+  );
+  // CSP report-uri directive
+  $form['seckit_xss']['csp']['report-uri'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $options['seckit_xss']['csp']['report-uri'],
+    '#title' => t('report-uri'),
+    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another rerport place. Default is admin/settings/seckit/csp-report.'),
   );
 
   // fieldset for X-XSS-Protection

@@ -36,6 +36,7 @@ function seckit_listener_hsts(context) {
  */
 function seckit_listener_csp(context) {
   if ($('#edit-seckit-xss-csp-checkbox').is(':checked')) {
+    $('#edit-seckit-xss-csp-report-only', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-allow', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-options', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-img-src', context).removeAttr('disabled');
@@ -47,9 +48,11 @@ function seckit_listener_csp(context) {
     $('#edit-seckit-xss-csp-xhr-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-style-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-frame-ancestors', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-report-uri', context).removeAttr('disabled');
     $('label[for="edit-seckit-xss-csp-allow"]', context).append('<span title="' + Drupal.t('This field is required.') + '" class="form-required">*</span>');
   }
   else {
+    $('#edit-seckit-xss-csp-report-only', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-allow', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-options', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-img-src', context).attr('disabled', 'disabled');
@@ -61,6 +64,7 @@ function seckit_listener_csp(context) {
     $('#edit-seckit-xss-csp-xhr-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-style-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-frame-ancestors', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-report-uri', context).attr('disabled', 'disabled');
     $('label[for="edit-seckit-xss-csp-allow"] > span', context).remove();
   }
 }

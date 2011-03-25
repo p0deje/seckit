@@ -7,7 +7,7 @@
 /**
  * Functional tests for Security Kit.
  *
- * Note, that functionality related IE MIME-sniffer isn't
+ * Note, that related to IE MIME-sniffer functionality isn't
  * tested as long as Drupal 6 version of SimpleTest module
  * lacks Ajax methods.
  */
