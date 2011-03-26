@@ -197,12 +197,9 @@ class SecKitTestCase extends DrupalWebTestCase {
     $form['seckit_clickjacking[js_css_noscript]'] = TRUE;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $path = base_path() . drupal_get_path('module', 'seckit');
-    $code = _seckit_get_js_css_code();
+    $code = _seckit_get_js_css_noscript_code();
     $this->assertRaw($code,
-      t('Files seckit.document_write.js and seckit.no_body.css are loaded.'));
-    $code = _seckit_get_noscript_code();
-    $this->assertRaw($code,
-      t('HTML code with seckit-noscript-tag is loaded.'));
+      t('JavaScript + CSS + Noscript protection is loaded.'));
   }
 
   /**
