@@ -1,0 +1,560 @@
+<?php
+/**
+ * @file
+ * Allows administrators to improve security of the website.
+ */
+
+/**
+ * Necessary constants.
+ */
+define('SECKIT_X_XSS_DISABLE', 0); // disable X-XSS-Protection HTTP header
+define('SECKIT_X_XSS_0', 1); // set X-XSS-Protection HTTP header to 0
+define('SECKIT_X_XSS_1', 2); // set X-XSS-Protection HTTP header to 1; mode=block
+define('SECKIT_X_FRAME_DISABLE', 0); // disable X-Frame-Options HTTP header
+define('SECKIT_X_FRAME_SAMEORIGIN', 1); // set X-Frame-Options HTTP header to SameOrigin
+define('SECKIT_X_FRAME_DENY', 2); // set X-Frame-Options HTTP header to Deny
+define('SECKIT_IE_MIME_FAILED', 0); // Upload module is not enabled
+define('SECKIT_IE_MIME_SECURE', 1); // txt is not in allowed extensions list
+define('SECKIT_IE_MIME_INSECURE', 2); // txt is in allowed extensions list
+define('SECKIT_IE_MIME_REGEX', '/(\s|^)txt(\s|$)/'); // regular expression for seckit_ie_mime functions
+
+/**
+ * Implements hook_perm().
+ */
+function seckit_perm() {
+  return array('administer seckit');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function seckit_menu() {
+  // settings page
+  $items['admin/settings/seckit'] = array(
+    'title' => 'Security Kit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('seckit_admin_form'),
+    'description' => 'Configure various options to improve security of your website.',
+    'access arguments' => array('administer seckit'),
+    'file' => 'includes/seckit.form.inc',
+  );
+  // menu callback for IE MIME-sniffer AHAH
+  $items['admin/settings/seckit/mime'] = array(
+    'page callback' => '_seckit_ie_mime_js',
+    'access arguments' => array('administer seckit'),
+    'type' => MENU_CALLBACK,
+  );
+  // menu callback for CSP reporting
+  $items['admin/settings/seckit/csp-report'] = array(
+    'page callback' => '_seckit_csp_report',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_init().
+ */
+function seckit_init() {
+  // get default/set options
+  $options = _seckit_get_options();
+
+  // execute necessary functions
+  _seckit_origin($options['seckit_csrf']['origin']);
+  _seckit_csp($options['seckit_xss']['csp']['checkbox']);
+  _seckit_x_xss($options['seckit_xss']['x_xss']['select']);
+  _seckit_x_frame($options['seckit_clickjacking']['x_frame']);
+  _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
+  _seckit_override_style($options['seckit_clickjacking']['override_style']);
+  _seckit_hsts($options['seckit_ssl']['hsts']);
+
+  // load jQuery listener
+  if ($_GET['q'] == 'admin/settings/seckit') {
+    $path = drupal_get_path('module', 'seckit');
+    $listener = $path . '/js/seckit.listener.js';
+    drupal_add_js($listener, 'module');
+  }
+}
+
+/**
+ * Sends X-Content-Security-Policy HTTP header.
+ *
+ * Header specifies Content Security Policy (CSP) for a website,
+ * which is used to allow/block content from selected sources.
+ *
+ * Based on specification available at
+ * https://wiki.mozilla.org/Security/CSP/Specification
+ */
+function _seckit_csp($apply) {
+  if ($apply) {
+    // get default/set options
+    $options = _seckit_get_options();
+    $options = $options['seckit_xss']['csp'];
+    $csp_report_only = $options['report-only'];
+    $csp_allow = $options['allow'];
+    $csp_options = $options['options'];
+    $csp_img_src = $options['img-src'];
+    $csp_media_src = $options['media-src'];
+    $csp_script_src = $options['script-src'];
+    $csp_object_src = $options['object-src'];
+    $csp_frame_src = $options['frame-src'];
+    $csp_font_src = $options['font-src'];
+    $csp_xhr_src = $options['xhr-src'];
+    $csp_style_src = $options['style-src'];
+    $csp_frame_ancestors = $options['frame-ancestors'];
+    $csp_report_uri = $options['report-uri'];
+
+    // prepare directives
+    $directives = array();
+    if ($csp_allow) {
+      $directives[] = 'allow ' . $csp_allow;
+    }
+    if ($csp_options) {
+      $directives[] = 'options ' . $csp_options;
+    }
+    if ($csp_img_src) {
+      $directives[] = 'img-src ' . $csp_img_src;
+    }
+    if ($csp_media_src) {
+      $directives[] = 'media-src ' . $csp_media_src;
+    }
+    if ($csp_script_src) {
+      $directives[] = 'script-src ' . $csp_script_src;
+    }
+    if ($csp_object_src) {
+      $directives[] = 'object-src ' . $csp_object_src;
+    }
+    if ($csp_frame_src) {
+      $directives[] = 'frame-src ' . $csp_frame_src;
+    }
+    if ($csp_font_src) {
+      $directives[] = 'font-src ' . $csp_font_src;
+    }
+    if ($csp_xhr_src) {
+      $directives[] = 'xhr-src ' . $csp_xhr_src;
+    }
+    if ($csp_style_src) {
+      $directives[] = 'style-src ' . $csp_style_src;
+    }
+    if ($csp_frame_ancestors) {
+      $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
+    }
+    if ($csp_report_uri) {
+      $directives[] = 'report-uri ' . $csp_report_uri;
+    }
+    $directives = implode('; ', $directives);
+
+    // send HTTP response header
+    if ($csp_report_only) {
+      drupal_set_header('X-Content-Security-Policy-Report-Only: ' . $directives); // use report-only mode
+    }
+    else {
+      drupal_set_header('X-Content-Security-Policy: ' . $directives);
+    }
+  }
+}
+
+/**
+ * Reports CSP violations to watchdog.
+ */
+function _seckit_csp_report() {
+  // we should only allow POST data with application/json content type
+  $method = $_SERVER['REQUEST_METHOD'];
+  $json_type = strstr($_SERVER['CONTENT_TYPE'], 'application/json');
+  $length = $_SERVER['CONTENT_LENGTH'];
+  if (($method == 'POST') && ($json_type) && ($length > 0)) {
+    // get and parse report
+    $reports = file_get_contents('php://input');
+    $reports = json_decode($reports);
+    // log to watchdog
+    foreach ($reports as $report) {
+      $report = (array) $report; // convert object to array
+      // prepare information
+      $message = t('CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Request: @request. <br /> Request headers: @request_headers');
+      $info = array(
+        '@directive' => $report['violated-directive'],
+        '@request' => $report['request'],
+        '@request_headers' => $report['request-headers'],
+        '@blocked_uri' => $report['blocked-uri'],
+      );
+      watchdog('seckit', $message, $info, WATCHDOG_WARNING);
+    }
+  }
+}
+
+/**
+ * Sends X-XSS-Protection HTTP header.
+ *
+ * X-XSS-Protection controls IE8/Safari/Chrome internal XSS filter.
+ */
+function _seckit_x_xss($apply) {
+  switch ($apply) {
+    case SECKIT_X_XSS_0:
+      drupal_set_header('X-XSS-Protection: 0'); // set X-XSS-Protection header to 0
+      break;
+
+    case SECKIT_X_XSS_1:
+      drupal_set_header('X-XSS-Protection: 1; mode=block'); // set X-XSS-Protection header to 1; mode=block
+      break;
+
+    case SECKIT_X_XSS_DISABLE:
+      default: //do nothing
+      break;
+  }
+}
+
+/**
+ * Sends menu callback for AHAH, executes necessary functionality.
+ */
+function _seckit_ie_mime_js() {
+  // prepare form
+  include_once drupal_get_path('module', 'seckit') . '/includes/seckit.form.inc';
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $form_build_id = $_POST['form_build_id'];
+  $form = form_get_cache($form_build_id, $form_state);
+  $args = $form['#parameters'];
+  $form_id = array_shift($args);
+  $form['#post'] = $_POST;
+  $form_state['post'] = $_POST;
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  $new_form = $form['seckit_xss']['ie_mime']['button'];
+  unset($new_form['#prefix']);
+  unset($new_form['#suffix']);
+
+  // execute function
+  _seckit_ie_mime();
+
+  // change button text, considering current settings
+  $result = _seckit_ie_mime_check();
+  if ($result == SECKIT_IE_MIME_SECURE) {
+    $new_form['#value'] = t('Allow uploading of .txt files');
+  }
+  else {
+    $new_form['#value'] = t('Restrict uploading of .txt files');
+  }
+
+  // render new form
+  $output = theme('status_messages') . drupal_render($new_form);
+  drupal_json(array('status' => TRUE, 'data' => $output));
+}
+
+/**
+ * Checks extensions variable set by Upload module.
+ *
+ * Checks both Default Extensions list and Anonymous Users Extensions.
+ * Returns results for further extensions modification.
+ */
+function _seckit_ie_mime_check() {
+  // if Upload module is enabled
+  if (module_exists('upload')) {
+    // default extensions check
+    $default = variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
+    $default = preg_match(SECKIT_IE_MIME_REGEX, $default);
+    // extensions for anonymous users check
+    $anonymous = variable_get('upload_extensions_1', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
+    $anonymous = preg_match(SECKIT_IE_MIME_REGEX, $anonymous);
+    if (($default == 0) || ($anonymous == 0)) {
+      return SECKIT_IE_MIME_SECURE;
+    }
+    else {
+      return SECKIT_IE_MIME_INSECURE;
+    }
+  }
+  // if Upload module is not enabled
+  else {
+    return SECKIT_IE_MIME_FAILED;
+  }
+}
+
+/**
+ * Sets txt as allowed/restricted extension.
+ *
+ * It's necessary to remove txt from allowed extensions, because Upload module
+ * can be used to exploit IE MIME sniffer bug, which leads to HTML injection.
+ * More information is available at
+ * http://p0deje.blogspot.com/2010/05/exploiting-ie-mime-sniffer.html
+ */
+function _seckit_ie_mime() {
+  // check extensions
+  $result = _seckit_ie_mime_check();
+  switch ($result) {
+    case SECKIT_IE_MIME_INSECURE:
+      $default_extensions = variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
+      $safe_extensions = preg_replace(SECKIT_IE_MIME_REGEX, ' ', $default_extensions);
+      variable_set('upload_extensions_default', trim($safe_extensions));
+      // extensions for anonymous users
+      $anonymous_extensions = variable_get('upload_extensions_1', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
+      $safe_extensions = preg_replace(SECKIT_IE_MIME_REGEX, ' ', $anonymous_extensions);
+      variable_set('upload_extensions_1', trim($safe_extensions));
+      // print message
+      drupal_set_message(t('Security Kit successfully removed txt from allowed extensions.'));
+      break;
+
+    case SECKIT_IE_MIME_SECURE:
+      $default_extensions = variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
+      $unsafe_extensions = $default_extensions . ' txt';
+      variable_set('upload_extensions_default', $unsafe_extensions);
+      // extensions for anonymous users
+      $anonymous_extensions = variable_get('upload_extensions_1', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp');
+      $unsafe_extensions = $anonymous_extensions . ' txt';
+      variable_set('upload_extensions_1', $unsafe_extensions);
+      // print message
+      drupal_set_message(t('Security Kit added txt to allowed extensions. Remember: it may lead to HTML injection.'), 'warning');
+      break;
+
+    case SECKIT_IE_MIME_FAILED:
+      drupal_set_message(t('Upload module is not enabled. No changes were made.'), 'error');
+      break;
+  }
+}
+
+/**
+ * Aborts HTTP request upon invalid Origin HTTP header.
+ *
+ * Origin HTTP request header contains hostname of the request source.
+ * Regarding to it, server may decide if request should be allowed/forbidden.
+ * This prevents requests from unwanted sources and prevents CSRF attacks.
+ * Applies to all HTTP request methods except GET and HEAD.
+ *
+ * Implementation of Origin is based on specification draft available at
+ * http://tools.ietf.org/html/draft-abarth-origin-07
+ */
+function _seckit_origin($apply) {
+  if ($apply) {
+    // get default/set options
+    $options = _seckit_get_options();
+
+    // prepare list of trustworthy sources
+    global $base_url; // default origin is always allowed
+    $whitelist = explode(',', $options['seckit_csrf']['origin_whitelist']);
+    $whitelist[] = $base_url;
+    $method = $_SERVER['REQUEST_METHOD'];
+
+    // ignore GET and HEAD requests, ignore requests without Origin
+    if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
+      $origin = $_SERVER['HTTP_ORIGIN'];
+      // check Origin
+      if (!in_array($origin, $whitelist)) {
+        $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
+        drupal_access_denied(); // send 403 response and show Access Denied page
+        watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', array('@ip' => $_SERVER['REMOTE_ADDR'], '@origin' => $_SERVER['HTTP_ORIGIN']), WATCHDOG_ERROR); // log event
+        exit; // abort request
+      }
+    }
+    else {
+      // allow request
+    }
+  }
+}
+
+/**
+ * Sends X-Frame-Options HTTP header.
+ *
+ * X-Frame-Options controls should browser show frames or not.
+ * More information can be found at initial article about it at
+ * http://blogs.msdn.com/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx
+ */
+function _seckit_x_frame($apply) {
+  switch ($apply) {
+    case SECKIT_X_FRAME_SAMEORIGIN:
+      drupal_set_header('X-Frame-Options: SameOrigin'); // set X-Frame-Options to SameOrigin
+      break;
+
+    case SECKIT_X_FRAME_DENY:
+      drupal_set_header('X-Frame-Options: Deny'); // set X-Frame-Options to Deny
+      break;
+
+    case SECKIT_X_FRAME_DISABLE:
+      default: // do nothing;
+      break;
+  }
+}
+
+/**
+ * Enables JavaScript + CSS + Noscript Clickjacking defense.
+ *
+ * Closes inline JavaScript and allows loading of any inline HTML elements.
+ * After, it starts new inline JavaScript to avoid breaking syntax.
+ * We need it, because Drupal API doesn't allow to init HTML elements in desired sequence.
+ */
+function _seckit_js_css_noscript($apply) {
+  if ($apply) {
+    drupal_add_js(_seckit_get_js_css_code(), 'inline', 'header');
+    drupal_add_js(_seckit_get_noscript_code(), 'inline', 'footer');
+  }
+}
+
+/**
+ * Gets JavaScript and CSS code.
+ *
+ * @return string
+ */
+function _seckit_get_js_css_code() {
+  $path = base_path() . drupal_get_path('module', 'seckit');
+  return <<< EOT
+      // close script tag for SecKit protection
+      //--><!]]>
+      </script>
+      <script type="text/javascript" src="$path/js/seckit.document_write.js"></script>
+      <link type="text/css" rel="stylesheet" id="seckit-clickjacking-no-body" media="all" href="$path/css/seckit.no_body.css" />
+      <! stop SecKit protection -->
+      <script type="text/javascript">
+      <!--//--><![CDATA[//><!--
+      // open script tag to avoid syntax errors
+EOT;
+}
+
+/**
+ * Gets Noscript code.
+ *
+ * @return string
+ */
+function _seckit_get_noscript_code() {
+  return <<< EOT
+      // close script tag for SecKit protection
+      //--><!]]>
+      </script>
+      <noscript>
+      <style>
+        /**
+         * Override style of seckit.no_body.css to show div with message
+         */
+        body {
+          display: block !important;
+        }
+        /**
+         * Set style of div with message
+         * "Sorry, you need to enable JavaScript to visit this website."
+         * so it hides all site behind itself.
+         */
+        #seckit-noscript-tag {
+          background-color: white;
+          position: fixed;
+          top: 0px;
+          left: 0px;
+          height: 100% !important;
+          width: 100% !important;
+          z-index: 999 !important;
+          font-family: sans-serif;
+          font-weight: bold;
+          color: red;
+          text-align: center;
+          padding-top: 20px;
+        }
+      </style>
+      <div id="seckit-noscript-tag">
+        <h1>Sorry, you need to enable JavaScript to visit this website.</h1>
+      </div>
+      </noscript>
+      <script type="text/javascript">
+      <!--//--><![CDATA[//><!--
+      // open script tag to avoid syntax errors
+EOT;
+}
+
+/**
+ * Overrides styles for HTML selectors.
+ *
+ * Option is useful when you need to allow users to post <iframe>, <frame>,
+ * <object> or <embed> tags. Special CSS overrides their styles.
+ */
+function _seckit_override_style($apply) {
+  if ($apply) {
+    $path = drupal_get_path('module', 'seckit');
+    $css_file = $path . '/css/seckit.override_style.css';
+    drupal_add_css($css_file);
+  }
+}
+
+/**
+ * Sends Strict-Transport-Security HTTP header
+ *
+ * HTTP Strict-Transport-Security (HSTS) header prevents eavesdropping and MITM attacks like SSLStrip,
+ * forces user-agent to send requests in HTTPS-only mode and convert HTTP links into secure.
+ *
+ * Implementation of STS is based on the specification draft available at
+ * http://tools.ietf.org/id/draft-ietf-websec-strict-transport-sec-00.txt
+ */
+function _seckit_hsts($apply) {
+  if ($apply) {
+    // get default/set options
+    $options = _seckit_get_options();
+    // prepare HSTS header value
+    $max_age = $options['seckit_ssl']['hsts_max_age'];
+    $subdomains = $options['seckit_ssl']['hsts_subdomains'];
+    $header[] = 'max-age=' . $max_age;
+    if ($subdomains) {
+      $header[] = 'includeSubDomains';
+    }
+    $header = implode('; ', $header);
+    // send HSTS header
+    drupal_set_header('Strict-Transport-Security: ' . $header);
+  }
+}
+
+/**
+ * Sets default options.
+ */
+function _seckit_get_options() {
+  // set default options
+  $default['seckit_xss']['csp'] = array(
+    'report-only' => 0,
+    'options' => '',
+    'img-src' => '',
+    'media-src' => '',
+    'script-src' => '',
+    'object-src' => '',
+    'frame-src' => '',
+    'font-src' => '',
+    'xhr-src' => '',
+    'style-src' => '',
+    'frame-ancestors' => '',
+  );
+  $default['seckit_csrf'] = array(
+    'origin' => 1,
+    'origin_whitelist' => '',
+  );
+  $default['seckit_clickjacking'] = array(
+    'js_css_noscript' => 0,
+    'override_style' => 0,
+  );
+  $default['seckit_ssl'] = array(
+    'hsts' => 0,
+    'hsts_subdomains' => 0,
+  );
+  // get variables
+  $result['seckit_xss'] = variable_get('seckit_xss', $default['seckit_xss']);
+  $result['seckit_csrf'] = variable_get('seckit_csrf', $default['seckit_csrf']);
+  $result['seckit_clickjacking'] = variable_get('seckit_clickjacking', $default['seckit_clickjacking']);
+  $result['seckit_ssl'] = variable_get('seckit_ssl', $default['seckit_ssl']);
+  // enable Content Security Policy (CSP)
+  if (!isset($result['seckit_xss']['csp']['checkbox'])) {
+    $result['seckit_xss']['csp']['checkbox'] = 0;
+  }
+  // set CSP allow directive to self
+  if (!isset($result['seckit_xss']['csp']['allow'])) {
+    $result['seckit_xss']['csp']['allow'] = "'self'";
+  }
+  // set CSP report-uri directive to menu callback
+  if (!isset($result['seckit_xss']['csp']['report-uri'])) {
+    $result['seckit_xss']['csp']['report-uri'] = 'admin/settings/seckit/csp-report';
+  }
+  // set X-XSS-Protection header to 1; mode=block
+  if (!isset($result['seckit_xss']['x_xss']['select'])) {
+    $result['seckit_xss']['x_xss']['select'] = SECKIT_X_XSS_1;
+  }
+  // enable Origin-based protection
+  if (!isset($result['seckit_csrf']['origin'])) {
+    $result['seckit_csrf']['origin'] = 1;
+  }
+  // set X-Frame-Options header to SameOrigin
+  if (!isset($result['seckit_clickjacking']['x_frame'])) {
+    $result['seckit_clickjacking']['x_frame'] = SECKIT_X_FRAME_SAMEORIGIN;
+  }
+  // set HSTS max-age to 1000
+  if (!isset($result['seckit_ssl']['hsts_max_age'])) {
+    $result['seckit_ssl']['hsts_max_age'] = 1000;
+  }
+  return $result;
+}

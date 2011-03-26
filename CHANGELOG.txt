@@ -1,0 +1,3 @@
+SecKit 1.0
+-------------
+Initial release. Supports Drupal 6.x
