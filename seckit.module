@@ -380,8 +380,7 @@ function _seckit_x_frame($apply) {
  */
 function _seckit_js_css_noscript($apply) {
   if ($apply) {
-    drupal_add_js(_seckit_get_js_css_code(), 'inline', 'header');
-    drupal_add_js(_seckit_get_noscript_code(), 'inline', 'footer');
+    drupal_add_js(_seckit_get_js_css_noscript_code(), 'inline', 'header');
   }
 }
 
@@ -390,7 +389,7 @@ function _seckit_js_css_noscript($apply) {
  *
  * @return string
  */
-function _seckit_get_js_css_code() {
+function _seckit_get_js_css_noscript_code() {
   $path = base_path() . drupal_get_path('module', 'seckit');
   return <<< EOT
       // close script tag for SecKit protection
@@ -399,50 +398,8 @@ function _seckit_get_js_css_code() {
       <script type="text/javascript" src="$path/js/seckit.document_write.js"></script>
       <link type="text/css" rel="stylesheet" id="seckit-clickjacking-no-body" media="all" href="$path/css/seckit.no_body.css" />
       <! stop SecKit protection -->
-      <script type="text/javascript">
-      <!--//--><![CDATA[//><!--
-      // open script tag to avoid syntax errors
-EOT;
-}
-
-/**
- * Gets Noscript code.
- *
- * @return string
- */
-function _seckit_get_noscript_code() {
-  return <<< EOT
-      // close script tag for SecKit protection
-      //--><!]]>
-      </script>
       <noscript>
-      <style>
-        /**
-         * Override style of seckit.no_body.css to show div with message
-         */
-        body {
-          display: block !important;
-        }
-        /**
-         * Set style of div with message
-         * "Sorry, you need to enable JavaScript to visit this website."
-         * so it hides all site behind itself.
-         */
-        #seckit-noscript-tag {
-          background-color: white;
-          position: fixed;
-          top: 0px;
-          left: 0px;
-          height: 100% !important;
-          width: 100% !important;
-          z-index: 999 !important;
-          font-family: sans-serif;
-          font-weight: bold;
-          color: red;
-          text-align: center;
-          padding-top: 20px;
-        }
-      </style>
+      <link type="text/css" rel="stylesheet" id="seckit-clickjacking-noscript-tag" media="all" href="$path/css/seckit.noscript_tag.css" />
       <div id="seckit-noscript-tag">
         <h1>Sorry, you need to enable JavaScript to visit this website.</h1>
       </div>
