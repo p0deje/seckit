@@ -1,4 +1,4 @@
 name = Security Kit
-description = Improve security of your Drupal website
+description = Enhance security of your Drupal website
 package = Security
 core = 6.x

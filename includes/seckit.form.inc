@@ -268,10 +268,10 @@ function seckit_admin_form() {
   $args['%stop'] = t('stop SecKit protection');
   $args['%css'] = t('seckit.no_body.css');
   $args['%display'] = t('display: none');
-  $description = t('Enable protection via JavaScript, CSS and NoScript tag. This is the most efficient Clickjacking prevention technique. If webiste is not being framed, %js starts commenting with %write and stops when reaches %stop. Thus %css, which sets body display to none, is ignored. If particularly this JavaScript file is being blocked (with XSS filter of Internet Explorer 8 or Safari), %css sets %display to body. If JavaScript is disabled within browser, it shows a special message. Credits for this trick go to !link.', $args);
+  $description = t('Enable protection via JavaScript, CSS and Noscript tag. This is the most efficient Clickjacking prevention technique. If webiste is not being framed, %js starts commenting with %write and stops when reaches %stop. Thus %css, which sets body display to none, is ignored. If particularly this JavaScript file is being blocked (with XSS filter of Internet Explorer 8 or Safari), %css sets %display to body. If JavaScript is disabled within browser, it shows a special message. Credits for this trick go to !link.', $args);
   $form['seckit_clickjacking']['js_css_noscript'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable JavaScript + CSS + NoScript protection'),
+    '#title' => t('Enable JavaScript + CSS + Noscript protection'),
     '#return_value' => 1,
     '#default_value' => $options['seckit_clickjacking']['js_css_noscript'],
     '#description' => $description,
