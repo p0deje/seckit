@@ -171,7 +171,7 @@ function _seckit_csp_report() {
     foreach ($reports as $report) {
       $report = (array) $report; // convert object to array
       // prepare information
-      $message = t('CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Request: @request. <br /> Request headers: @request_headers');
+      $message = 'CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Request: @request. <br /> Request headers: @request_headers';
       $info = array(
         '@directive' => $report['violated-directive'],
         '@request' => $report['request'],
@@ -338,7 +338,13 @@ function _seckit_origin($apply) {
       if (!in_array($origin, $whitelist)) {
         $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
         drupal_access_denied(); // send 403 response and show Access Denied page
-        watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', array('@ip' => $_SERVER['REMOTE_ADDR'], '@origin' => $_SERVER['HTTP_ORIGIN']), WATCHDOG_ERROR); // log event
+        // prepare information
+        $message = 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.';
+        $info = array(
+          '@ip' => $_SERVER['REMOTE_ADDR'],
+          '@origin' => $_SERVER['HTTP_ORIGIN'],
+        );
+        watchdog('seckit', $message, $info, WATCHDOG_ERROR); // log event
         exit; // abort request
       }
     }
