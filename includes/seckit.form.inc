@@ -69,7 +69,7 @@ function seckit_admin_form() {
   $form['seckit_xss']['csp']['allow'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['allow'],
-    '#title' => t('allow'),
+    '#title' => 'allow',
     '#description' => t("Specify security policy for all types of content, which are not specified further. Default is 'self'."),
   );
   // CSP options directive
@@ -79,77 +79,77 @@ function seckit_admin_form() {
   $form['seckit_xss']['csp']['options'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['options'],
-    '#title' => t('options'),
+    '#title' => 'options',
     '#description' => $description,
   );
   // CSP img-src directive
   $form['seckit_xss']['csp']['img-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['img-src'],
-    '#title' => t('img-src'),
+    '#title' => 'img-src',
     '#description' => t('Specify trustworthy sources for &lt;img&gt; elements.'),
   );
   // CSP media-src directive
   $form['seckit_xss']['csp']['media-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['media-src'],
-    '#title' => t('media-src'),
+    '#title' => 'media-src',
     '#description' => t('Specify trustworthy sources for &lt;audio&gt; and &lt;video&gt; elements.'),
   );
   // CSP script-src directive
   $form['seckit_xss']['csp']['script-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['script-src'],
-    '#title' => t('script-src'),
+    '#title' => 'script-src',
     '#description' => t('Specify trustworthy sources for &lt;script&gt; elements.'),
   );
   // CSP object-src directive
   $form['seckit_xss']['csp']['object-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['object-src'],
-    '#title' => t('object-src'),
+    '#title' => 'object-src',
     '#description' => t('Specify trustworthy sources for &lt;object&gt;, &lt;embed&gt; and &lt;applet&gt; elements.'),
   );
   // CSP frame-src directive
   $form['seckit_xss']['csp']['frame-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['frame-src'],
-    '#title' => t('frame-src'),
+    '#title' => 'frame-src',
     '#description' => t('Specify trustworthy sources for &lt;iframe&gt; and &lt;frame&gt; elements.'),
   );
   // CSP font-src directive
   $form['seckit_xss']['csp']['font-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['font-src'],
-    '#title' => t('font-src'),
+    '#title' => 'font-src',
     '#description' => t('Specify trustworthy sources for @font-src CSS loads.'),
   );
   // CSP xhr-src directive
   $form['seckit_xss']['csp']['xhr-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['xhr-src'],
-    '#title' => t('xhr-src'),
+    '#title' => 'xhr-src',
     '#description' => t('Specify trustworthy sources for XmlHttpRequest connections.'),
   );
   // CSP style-src directive
   $form['seckit_xss']['csp']['style-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['style-src'],
-    '#title' => t('style-src'),
+    '#title' => 'style-src',
     '#description' => t('Specify trustworthy sources for stylesheets. Note, that inline stylesheets and style attributes of HTML elements are allowed.'),
   );
   // CSP frame-ancestors directive
   $form['seckit_xss']['csp']['frame-ancestors'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['frame-ancestors'],
-    '#title' => t('frame-ancestors'),
+    '#title' => 'frame-ancestors',
     '#description' => t('Specify trustworthy sources to be valid ancestors for embedding your site via &lt;object&gt;, &lt;iframe&gt; and &lt;frame&gt; elements.'),
   );
   // CSP report-uri directive
   $form['seckit_xss']['csp']['report-uri'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['report-uri'],
-    '#title' => t('report-uri'),
+    '#title' => 'report-uri',
     '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another rerport place. Default is admin/settings/seckit/csp-report.'),
   );
 
@@ -163,8 +163,8 @@ function seckit_admin_form() {
   // options for X-XSS-Protection
   $x_xss_protection_options = array(
     SECKIT_X_XSS_DISABLE => t('Disabled'),
-    SECKIT_X_XSS_0 => t('0'),
-    SECKIT_X_XSS_1 => t('1; mode=block'),
+    SECKIT_X_XSS_0 => '0',
+    SECKIT_X_XSS_1 => '1; mode=block',
   );
   // configure X-XSS-Protection
   $link = l(t("IE's XSS filter security flaws in past"), 'http://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities');
@@ -246,8 +246,8 @@ function seckit_admin_form() {
   // options for X-Frame-Options
   $x_frame_options = array(
     SECKIT_X_FRAME_DISABLE => t('Disabled'),
-    SECKIT_X_FRAME_SAMEORIGIN => t('SameOrigin'),
-    SECKIT_X_FRAME_DENY => t('Deny'),
+    SECKIT_X_FRAME_SAMEORIGIN => 'SameOrigin',
+    SECKIT_X_FRAME_DENY => 'Deny',
   );
   // configure X-Frame-Options
   $items = array('Disabled - turn off X-Frame-Options', 'SameOrigin - browser allows all the attempts of framing website within its domain. Enabled by default', 'Deny - browser rejects any attempt of framing website');
