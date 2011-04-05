@@ -7,14 +7,15 @@
 /**
  * Forms administration page.
  */
-function seckit_admin_form($form, &$form_state) {
+function seckit_admin_form() {
   // get default/set options
   $options = _seckit_get_options();
 
   // main description
+  $args['!browserscope'] = l(t('Browserscope'), 'http://www.browserscope.org/?category=security');
   $form['seckit_description'] = array(
     '#type' => 'item',
-    '#description' => t('Module provides your website with various options to mitigate risks of common web application vulnerabilities like Cross-site Scripting, Cross-site Request Forgery and Clickjacking. It also has some options to improve your SSL/TLS security.'),
+    '#description' => t('Module provides your website with various options to mitigate risks of common web application vulnerabilities like Cross-site Scripting, Cross-site Request Forgery and Clickjacking. It also has some options to improve your SSL/TLS security and fixes Drupal core Upload module issue leading to an easy exploitation of old Internet Explorer MIME sniffer HTML injection vulnerability. Note, that some secuirty features are not supported by all the browsers. You may find this out at !browserscope.', $args),
   );
 
   // main fieldset for XSS
@@ -41,7 +42,15 @@ function seckit_admin_form($form, &$form_state) {
     '#default_value' => $options['seckit_xss']['csp']['checkbox'],
     '#title' => t('X-Content-Security-Policy'),
     '#return_value' => 1,
-    '#description' => t('Send X-Content-Security-Policy HTTP response header with the list of content security policy directives.'),
+    '#description' => t('Send X-Content-Security-Policy HTTP response header with the list of Content Security Policy directives.'),
+  );
+  // CSP report-only mode
+  $form['seckit_xss']['csp']['report-only'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => $options['seckit_xss']['csp']['report-only'],
+    '#title' => t('Report Only'),
+    '#return_value' => 1,
+    '#description' => t('Use Content Security Policy in report-only mode. In this case, violations of policies will only be reported, not blocked. Use this while configuring policies. Reports are logged to watchdog.'),
   );
   // CSP description
   $items = array("'self' - allow content only from your domain", "'none' - block content from any source");
@@ -49,7 +58,8 @@ function seckit_admin_form($form, &$form_state) {
   $items = array('* - load content from any source', '*.example.com - load content from example.com and all its subdomains', 'example.com:* - load content from example.com via any port.  Otherwise, it will use your website default port');
   $args['!wildcards'] = theme('item_list', array('items' => $items));
   $args['!spec'] = l(t('specification page'), 'https://wiki.mozilla.org/Security/CSP/Specification');
-  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec.", $args);
+  $args['!bookmarklet'] = l(t('special bookmarklet'), 'http://brandon.sternefamily.net/posts/2010/10/content-security-policy-recommendation-bookmarklet/');
+  $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec. You may also use !bookmarklet to figure out necessary policies.", $args);
   $form['seckit_xss']['csp']['description'] = array(
     '#type' => 'item',
     '#title' => t('Directives'),
@@ -59,7 +69,7 @@ function seckit_admin_form($form, &$form_state) {
   $form['seckit_xss']['csp']['allow'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['allow'],
-    '#title' => t('allow'),
+    '#title' => 'allow',
     '#description' => t("Specify security policy for all types of content, which are not specified further. Default is 'self'."),
   );
   // CSP options directive
@@ -69,71 +79,78 @@ function seckit_admin_form($form, &$form_state) {
   $form['seckit_xss']['csp']['options'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['options'],
-    '#title' => t('options'),
+    '#title' => 'options',
     '#description' => $description,
   );
   // CSP img-src directive
   $form['seckit_xss']['csp']['img-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['img-src'],
-    '#title' => t('img-src'),
+    '#title' => 'img-src',
     '#description' => t('Specify trustworthy sources for &lt;img&gt; elements.'),
   );
   // CSP media-src directive
   $form['seckit_xss']['csp']['media-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['media-src'],
-    '#title' => t('media-src'),
+    '#title' => 'media-src',
     '#description' => t('Specify trustworthy sources for &lt;audio&gt; and &lt;video&gt; elements.'),
   );
   // CSP script-src directive
   $form['seckit_xss']['csp']['script-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['script-src'],
-    '#title' => t('script-src'),
+    '#title' => 'script-src',
     '#description' => t('Specify trustworthy sources for &lt;script&gt; elements.'),
   );
   // CSP object-src directive
   $form['seckit_xss']['csp']['object-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['object-src'],
-    '#title' => t('object-src'),
+    '#title' => 'object-src',
     '#description' => t('Specify trustworthy sources for &lt;object&gt;, &lt;embed&gt; and &lt;applet&gt; elements.'),
   );
   // CSP frame-src directive
   $form['seckit_xss']['csp']['frame-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['frame-src'],
-    '#title' => t('frame-src'),
+    '#title' => 'frame-src',
     '#description' => t('Specify trustworthy sources for &lt;iframe&gt; and &lt;frame&gt; elements.'),
   );
   // CSP font-src directive
   $form['seckit_xss']['csp']['font-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['font-src'],
-    '#title' => t('font-src'),
+    '#title' => 'font-src',
     '#description' => t('Specify trustworthy sources for @font-src CSS loads.'),
   );
   // CSP xhr-src directive
   $form['seckit_xss']['csp']['xhr-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['xhr-src'],
-    '#title' => t('xhr-src'),
+    '#title' => 'xhr-src',
     '#description' => t('Specify trustworthy sources for XmlHttpRequest connections.'),
   );
   // CSP style-src directive
   $form['seckit_xss']['csp']['style-src'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['style-src'],
-    '#title' => t('style-src'),
+    '#title' => 'style-src',
     '#description' => t('Specify trustworthy sources for stylesheets. Note, that inline stylesheets and style attributes of HTML elements are allowed.'),
   );
   // CSP frame-ancestors directive
   $form['seckit_xss']['csp']['frame-ancestors'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['frame-ancestors'],
-    '#title' => t('frame-ancestors'),
+    '#title' => 'frame-ancestors',
     '#description' => t('Specify trustworthy sources to be valid ancestors for embedding your site via &lt;object&gt;, &lt;iframe&gt; and &lt;frame&gt; elements.'),
+  );
+  // CSP report-uri directive
+  $form['seckit_xss']['csp']['report-uri'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $options['seckit_xss']['csp']['report-uri'],
+    '#title' => 'report-uri',
+    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another rerport place. Default is admin/config/system/csp-report.'),
   );
 
   // fieldset for X-XSS-Protection
@@ -146,8 +163,8 @@ function seckit_admin_form($form, &$form_state) {
   // options for X-XSS-Protection
   $x_xss_protection_options = array(
     SECKIT_X_XSS_DISABLE => t('Disabled'),
-    SECKIT_X_XSS_0 => t('0'),
-    SECKIT_X_XSS_1 => t('1; mode=block'),
+    SECKIT_X_XSS_0 => '0',
+    SECKIT_X_XSS_1 => '1; mode=block',
   );
   // configure X-XSS-Protection
   $link = l(t("IE's XSS filter security flaws in past"), 'http://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities');
@@ -199,8 +216,8 @@ function seckit_admin_form($form, &$form_state) {
   // options for X-Frame-Options
   $x_frame_options = array(
     SECKIT_X_FRAME_DISABLE => t('Disabled'),
-    SECKIT_X_FRAME_SAMEORIGIN => t('SameOrigin'),
-    SECKIT_X_FRAME_DENY => t('Deny'),
+    SECKIT_X_FRAME_SAMEORIGIN => 'SameOrigin',
+    SECKIT_X_FRAME_DENY => 'Deny',
   );
   // configure X-Frame-Options
   $items = array('Disabled - turn off X-Frame-Options', 'SameOrigin - browser allows all the attempts of framing website within its domain. Enabled by default', 'Deny - browser rejects any attempt of framing website');
@@ -222,10 +239,10 @@ function seckit_admin_form($form, &$form_state) {
   $args['%stop'] = t('stop SecKit protection');
   $args['%css'] = t('seckit.no_body.css');
   $args['%display'] = t('display: none');
-  $description = t('Enable protection via JavaScript, CSS and NoScript tag. This is the most efficient Clickjacking prevention technique. If webiste is not being framed, %js starts commenting with %write and stops when reaches %stop. Thus %css, which sets body display to none, is ignored. If particularly this JavaScript file is being blocked (with XSS filter of Internet Explorer 8 or Safari), %css sets %display to body. If JavaScript is disabled within browser, it shows a special message. Credits for this trick go to !link.', $args);
+  $description = t('Enable protection via JavaScript, CSS and Noscript tag. This is the most efficient Clickjacking prevention technique. If webiste is not being framed, %js starts commenting with %write and stops when reaches %stop. Thus %css, which sets body display to none, is ignored. If particularly this JavaScript file is being blocked (with XSS filter of Internet Explorer 8 or Safari), %css sets %display to body. If JavaScript is disabled within browser, it shows a special message. Credits for this trick go to !link.', $args);
   $form['seckit_clickjacking']['js_css_noscript'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable JavaScript + CSS + NoScript protection'),
+    '#title' => t('Enable JavaScript + CSS + Noscript protection'),
     '#return_value' => 1,
     '#default_value' => $options['seckit_clickjacking']['js_css_noscript'],
     '#description' => $description,

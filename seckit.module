@@ -21,7 +21,7 @@ function seckit_permission() {
   return array(
     'administer seckit' => array(
       'title' => t('Administer SecKit'),
-      'description' => t('Access to adminstrative interface of Security Kit.'),
+      'description' => t('Configure security features of your Drupal installation.'),
     ),
   );
 }
@@ -31,13 +31,19 @@ function seckit_permission() {
  */
 function seckit_menu() {
   // settings page
-  $items['admin/config/seckit'] = array(
+  $items['admin/config/system/seckit'] = array(
     'title' => 'Security Kit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('seckit_admin_form'),
     'description' => 'Configure various options to improve security of your website.',
     'access arguments' => array('administer seckit'),
     'file' => 'includes/seckit.form.inc',
+  );
+  // menu callback for CSP reporting
+  $items['admin/config/system/seckit/csp-report'] = array(
+    'page callback' => '_seckit_csp_report',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -59,7 +65,7 @@ function seckit_init() {
   _seckit_hsts($options['seckit_ssl']['hsts']);
 
   // load jQuery listener
-  if ($_GET['q'] == 'admin/config/seckit') {
+  if ($_GET['q'] == 'admin/config/system/seckit') {
     $path = drupal_get_path('module', 'seckit');
     $listener = $path . '/js/seckit.listener.js';
     drupal_add_js($listener);
@@ -80,6 +86,7 @@ function _seckit_csp($apply) {
     // get default/set options
     $options = _seckit_get_options();
     $options = $options['seckit_xss']['csp'];
+    $csp_report_only = $options['report-only'];
     $csp_allow = $options['allow'];
     $csp_options = $options['options'];
     $csp_img_src = $options['img-src'];
@@ -91,8 +98,9 @@ function _seckit_csp($apply) {
     $csp_xhr_src = $options['xhr-src'];
     $csp_style_src = $options['style-src'];
     $csp_frame_ancestors = $options['frame-ancestors'];
+    $csp_report_uri = $options['report-uri'];
 
-    // prepare directives array
+    // prepare directives
     $directives = array();
     if ($csp_allow) {
       $directives[] = 'allow ' . $csp_allow;
@@ -127,10 +135,45 @@ function _seckit_csp($apply) {
     if ($csp_frame_ancestors) {
       $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
     }
-
-    // send CSP response header with specified directives
+    if ($csp_report_uri) {
+      $directives[] = 'report-uri ' . $csp_report_uri;
+    }
     $directives = implode('; ', $directives);
-    drupal_add_http_header('X-Content-Security-Policy', $directives);
+
+    // send HTTP response header
+    if ($csp_report_only) {
+      drupal_add_http_header('X-Content-Security-Policy-Report-Only', $directives); // use report-only mode
+    }
+    else {
+      drupal_add_http_header('X-Content-Security-Policy', $directives);
+    }
+  }
+}
+
+/**
+ * Reports CSP violations to watchdog.
+ */
+function _seckit_csp_report() {
+  // we should only allow POST data with application/json content type
+  $method = $_SERVER['REQUEST_METHOD'];
+  $json_type = strstr($_SERVER['CONTENT_TYPE'], 'application/json');
+  $length = $_SERVER['CONTENT_LENGTH'];
+  if (($method == 'POST') && ($json_type) && ($length > 0)) {
+    // get and parse report
+    $reports = file_get_contents('php://input');
+    $reports = json_decode($reports);
+    // log to watchdog
+    foreach ($reports as $report) {
+      $report = (array) $report; // convert object to array
+      // prepare information
+      $info = array(
+        '@directive' => $report['violated-directive'],
+        '@request' => $report['request'],
+        '@request_headers' => $report['request-headers'],
+        '@blocked_uri' => $report['blocked-uri'],
+      );
+      watchdog('seckit', 'CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Request: @request. <br /> Request headers: @request_headers', $info, WATCHDOG_WARNING);
+    }
   }
 }
 
@@ -184,7 +227,12 @@ function _seckit_origin($apply) {
       if (!in_array($origin, $whitelist)) {
         $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
         drupal_access_denied(); // send 403 response and show Access Denied page
-        watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', array('@ip' => $_SERVER['REMOTE_ADDR'], '@origin' => $_SERVER['HTTP_ORIGIN']), WATCHDOG_ERROR); // log event
+        // prepare information
+        $info = array(
+          '@ip' => $_SERVER['REMOTE_ADDR'],
+          '@origin' => $_SERVER['HTTP_ORIGIN'],
+        );
+        watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', $info, WATCHDOG_ERROR); // log event
         exit; // abort request
       }
     }
@@ -226,51 +274,26 @@ function _seckit_x_frame($apply) {
  */
 function _seckit_js_css_noscript($apply) {
   if ($apply) {
-    $path = base_path() . drupal_get_path('module', 'seckit');
-    $code = <<< EOT
+    drupal_add_js(_seckit_get_js_css_noscript_code(), array('type' => 'inline'));
+  }
+}
+
+/**
+ * Gets JavaScript and CSS code.
+ *
+ * @return string
+ */
+function _seckit_get_js_css_noscript_code() {
+  $path = base_path() . drupal_get_path('module', 'seckit');
+  return <<< EOT
       // close script tag for SecKit protection
       //--><!]]>
       </script>
       <script type="text/javascript" src="$path/js/seckit.document_write.js"></script>
       <link type="text/css" rel="stylesheet" id="seckit-clickjacking-no-body" media="all" href="$path/css/seckit.no_body.css" />
       <! stop SecKit protection -->
-      <script type="text/javascript">
-      <!--//--><![CDATA[//><!--
-      // open script tag to avoid syntax errors
-EOT;
-    drupal_add_js($code, array('type' => 'inline'));
-    $code = <<< EOT
-      // close script tag for SecKit protection
-      //--><!]]>
-      </script>
       <noscript>
-      <style>
-        /**
-         * Override style of seckit.no_body.css to show div with message
-         */
-        body {
-          display: block !important;
-        }
-        /**
-         * Set style of div with message
-         * "Sorry, you need to enable JavaScript to visit this website."
-         * so it hides all site behind itself.
-         */
-        #seckit-noscript-tag {
-          background-color: white;
-          position: fixed;
-          top: 0px;
-          left: 0px;
-          height: 100% !important;
-          width: 100% !important;
-          z-index: 999 !important;
-          font-family: sans-serif;
-          font-weight: bold;
-          color: red;
-          text-align: center;
-          padding-top: 20px;
-        }
-      </style>
+      <link type="text/css" rel="stylesheet" id="seckit-clickjacking-noscript-tag" media="all" href="$path/css/seckit.noscript_tag.css" />
       <div id="seckit-noscript-tag">
         <h1>Sorry, you need to enable JavaScript to visit this website.</h1>
       </div>
@@ -279,8 +302,6 @@ EOT;
       <!--//--><![CDATA[//><!--
       // open script tag to avoid syntax errors
 EOT;
-    drupal_add_js($code, array('type' => 'inline', 'scope' => 'footer'));
-  }
 }
 
 /**
@@ -329,6 +350,7 @@ function _seckit_hsts($apply) {
 function _seckit_get_options() {
   // set default options
   $default['seckit_xss']['csp'] = array(
+    'report-only' => 0,
     'options' => '',
     'img-src' => '',
     'media-src' => '',
@@ -359,11 +381,15 @@ function _seckit_get_options() {
   $result['seckit_ssl'] = variable_get('seckit_ssl', $default['seckit_ssl']);
   // enable Content Security Policy (CSP)
   if (!isset($result['seckit_xss']['csp']['checkbox'])) {
-    $result['seckit_xss']['csp']['checkbox'] = 1;
+    $result['seckit_xss']['csp']['checkbox'] = 0;
   }
   // set CSP allow directive to self
   if (!isset($result['seckit_xss']['csp']['allow'])) {
     $result['seckit_xss']['csp']['allow'] = "'self'";
+  }
+  // set CSP report-uri directive to menu callback
+  if (!isset($result['seckit_xss']['csp']['report-uri'])) {
+    $result['seckit_xss']['csp']['report-uri'] = 'admin/config/system/seckit/csp-report';
   }
   // set X-XSS-Protection header to 1; mode=block
   if (!isset($result['seckit_xss']['x_xss']['select'])) {
