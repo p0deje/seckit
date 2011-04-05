@@ -54,9 +54,9 @@ function seckit_admin_form() {
   );
   // CSP description
   $items = array("'self' - allow content only from your domain", "'none' - block content from any source");
-  $args['!keywords'] = theme('item_list', $items);
+  $args['!keywords'] = theme('item_list', array('items' => $items));
   $items = array('* - load content from any source', '*.example.com - load content from example.com and all its subdomains', 'example.com:* - load content from example.com via any port.  Otherwise, it will use your website default port');
-  $args['!wildcards'] = theme('item_list', $items);
+  $args['!wildcards'] = theme('item_list', array('items' => $items));
   $args['!spec'] = l(t('specification page'), 'https://wiki.mozilla.org/Security/CSP/Specification');
   $args['!bookmarklet'] = l(t('special bookmarklet'), 'http://brandon.sternefamily.net/posts/2010/10/content-security-policy-recommendation-bookmarklet/');
   $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec. You may also use !bookmarklet to figure out necessary policies.", $args);
@@ -74,7 +74,7 @@ function seckit_admin_form() {
   );
   // CSP options directive
   $items = array('inline-scripts - allow inline scripts and javascript: URI', 'eval-script - allow eval() function and allow code to be generated from strings in new Function() constructor, setTimeout() and setInterval()');
-  $args['!options'] = theme('item_list', $items);
+  $args['!options'] = theme('item_list', array('items' => $items));
   $description = t('Set up specific security policy options. Separate options with space. Possible values are: !options', $args);
   $form['seckit_xss']['csp']['options'] = array(
     '#type' => 'textfield',
@@ -150,7 +150,7 @@ function seckit_admin_form() {
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['report-uri'],
     '#title' => 'report-uri',
-    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another rerport place. Default is admin/settings/seckit/csp-report.'),
+    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another rerport place. Default is admin/config/system/csp-report.'),
   );
 
   // fieldset for X-XSS-Protection
@@ -169,7 +169,7 @@ function seckit_admin_form() {
   // configure X-XSS-Protection
   $link = l(t("IE's XSS filter security flaws in past"), 'http://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities');
   $items = array('Disabled - XSS filter will work in default mode', '0 - XSS filter will be disabled for a website. It may be useful because of ' . $link, '1; mode=block - XSS filter will be left enabled, but it will block entire page instead of modifying dangerous content. Enabled by default');
-  $args['!values'] = theme('item_list', $items);
+  $args['!values'] = theme('item_list', array('items' => $items));
   $form['seckit_xss']['x_xss']['select'] = array(
     '#type' => 'select',
     '#title' => t('Configure'),
@@ -177,36 +177,6 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_xss']['x_xss']['select'],
     '#description' => t('!values', $args),
   );
-
-  // fieldset for IE MIME sniffer security
-  $args['!msdn'] = l(t('official blog post'), 'http://blogs.msdn.com/ie/archive/2008/07/02/ie8-security-part-v-comprehensive-protection.aspx');
-  $args['!blog'] = l(t('related blog post'), 'http://p0deje.blogspot.com/2010/05/exploiting-ie-mime-sniffer.html');
-  $description = t('Files of text/plain MIME type (e.g. txt) can be used to exploit Internet Explorer MIME-sniffer bug. It is recommended to restrict uploading of such files. You may read more about MIME Handling at !msdn and about its exploitation in Drupal at !blog.', $args);
-  $form['seckit_xss']['ie_mime'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Internet Explorer MIME sniffer'),
-    '#tree' => TRUE,
-    '#description' => $description,
-  );
-  // button for fixing IE MIME sniffer exploit
-  $form['seckit_xss']['ie_mime']['button'] = array(
-    '#type' => 'button',
-    '#prefix' => '<div id="edit-seckit-xss-ie-mime-button-ahah-wrapper">',
-    '#suffix' => '</div>',
-    '#ahah' => array(
-      'path' => 'admin/settings/seckit/mime',
-      'wrapper' => 'edit-seckit-xss-ie-mime-button-ahah-wrapper',
-      'effect' => 'fade',
-    ),
-  );
-  // set necessary state for the button
-  $result = _seckit_ie_mime_check();
-  if ($result == SECKIT_IE_MIME_SECURE) {
-    $form['seckit_xss']['ie_mime']['button']['#value'] = t('Allow uploading of .txt files');
-  }
-  else {
-    $form['seckit_xss']['ie_mime']['button']['#value'] = t('Restrict uploading of .txt files');
-  }
 
   // main fieldset for CSRF
   $form['seckit_csrf'] = array(
@@ -251,7 +221,7 @@ function seckit_admin_form() {
   );
   // configure X-Frame-Options
   $items = array('Disabled - turn off X-Frame-Options', 'SameOrigin - browser allows all the attempts of framing website within its domain. Enabled by default', 'Deny - browser rejects any attempt of framing website');
-  $args['!values'] = theme('item_list', $items);
+  $args['!values'] = theme('item_list', array('items' => $items));
   $args['!msdn'] = l(t('MSDN article'), 'http://blogs.msdn.com/b/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx');
   $description = t("X-Frame-Options HTTP response header controls browser's policy of frame rendering. Possible values: !values You may read more about it at !msdn.", $args);
   $form['seckit_clickjacking']['x_frame'] = array(
