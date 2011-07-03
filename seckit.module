@@ -103,46 +103,52 @@ function _seckit_csp($apply) {
 
     // prepare directives
     $directives = array();
-    if ($csp_default_src) {
-      $directives[] = 'default-src ' . $csp_default_src;
-    }
-    if ($csp_script_src) {
-      $directives[] = 'script-src ' . $csp_script_src;
-    }
-    if ($csp_object_src) {
-      $directives[] = 'object-src ' . $csp_object_src;
-    }
-    if ($csp_img_src) {
-      $directives[] = 'img-src ' . $csp_img_src;
-    }
-    if ($csp_media_src) {
-      $directives[] = 'media-src ' . $csp_media_src;
-    }
-    if ($csp_style_src) {
-      $directives[] = 'style-src ' . $csp_style_src;
-    }
-    if ($csp_frame_src) {
-      $directives[] = 'frame-src ' . $csp_frame_src;
-    }
-    if ($csp_font_src) {
-      $directives[] = 'font-src ' . $csp_font_src;
-    }
-    if ($csp_xhr_src) {
-      $directives[] = 'xhr-src ' . $csp_xhr_src;
-    }
-    if ($csp_frame_ancestors) {
-      $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
-    }
-    if ($csp_report_uri) {
-      $directives[] = 'report-uri ' . $csp_report_uri;
-    }
+
+    // we should allow only policy-uri if it's declared
     if ($csp_policy_uri) {
-      $directives[] = 'policy-uri ' . $csp_policy_uri;
+      $directives = 'policy-uri ' . $csp_policy_uri;
     }
-    if ($csp_options) {
-      $directives[] = 'options ' . $csp_options;
+    // otherwise prepare directives
+    else {
+      if ($csp_default_src) {
+        $directives[] = 'default-src ' . $csp_default_src;
+      }
+      if ($csp_script_src) {
+        $directives[] = 'script-src ' . $csp_script_src;
+      }
+      if ($csp_object_src) {
+        $directives[] = 'object-src ' . $csp_object_src;
+      }
+      if ($csp_img_src) {
+        $directives[] = 'img-src ' . $csp_img_src;
+      }
+      if ($csp_media_src) {
+        $directives[] = 'media-src ' . $csp_media_src;
+      }
+      if ($csp_style_src) {
+        $directives[] = 'style-src ' . $csp_style_src;
+      }
+      if ($csp_frame_src) {
+        $directives[] = 'frame-src ' . $csp_frame_src;
+      }
+      if ($csp_font_src) {
+        $directives[] = 'font-src ' . $csp_font_src;
+      }
+      if ($csp_xhr_src) {
+        $directives[] = 'xhr-src ' . $csp_xhr_src;
+      }
+      if ($csp_frame_ancestors) {
+        $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
+      }
+      if ($csp_report_uri) {
+        $directives[] = 'report-uri ' . $csp_report_uri;
+      }
+      if ($csp_options) {
+        $directives[] = 'options ' . $csp_options;
+      }
+      // merge directives
+      $directives = implode('; ', $directives);
     }
-    $directives = implode('; ', $directives);
 
     // send HTTP response header
     if ($csp_report_only) {

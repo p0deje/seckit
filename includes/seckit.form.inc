@@ -29,7 +29,7 @@ function seckit_admin_form() {
 
   // fieldset for Content Security Policy (CSP)
   $args['!wiki'] = l(t('Mozilla Wiki'), 'https://wiki.mozilla.org/Security/CSP');
-  $description = t('Content Security Policy specifies trustworthy sources of content. You may read more about it at !wiki.', $args);
+  $description = t('Content Security Policy is a policy framework that allows to specify trustworthy sources of content and to restrict its capabilities. You may read more about it at !wiki.', $args);
   $form['seckit_xss']['csp'] = array(
     '#type' => 'fieldset',
     '#title' => t('Content Security Policy'),
@@ -40,7 +40,7 @@ function seckit_admin_form() {
   $form['seckit_xss']['csp']['checkbox'] = array(
     '#type' => 'checkbox',
     '#default_value' => $options['seckit_xss']['csp']['checkbox'],
-    '#title' => t('X-Content-Security-Policy'),
+    '#title' => t('Send HTTP response header'),
     '#return_value' => 1,
     '#description' => t('Send X-Content-Security-Policy (supported by Mozilla Firefox) and X-WebKit-CSP (supported by Google Chrome) HTTP response headers with the list of Content Security Policy directives.'),
   );
@@ -53,11 +53,16 @@ function seckit_admin_form() {
     '#description' => t('Use Content Security Policy in report-only mode. In this case, violations of policies will only be reported, not blocked. Use this while configuring policies. Reports are logged to watchdog.'),
   );
   // CSP description
-  $items = array("'self' - allow content only from your domain", "'none' - block content from any source");
+  $items = array(
+    "'none' - block content from any source",
+    "'self' - allow content only from your domain",
+    "'unsafe-inline' - allow specific inline content (note, that it is supported by a subset of directives)",
+    "'unsafe-eval' - allow a set of string-to-code API which is restricted by default (supported by script-src directive)"
+  );
   $args['!keywords'] = theme('item_list', array('items' => $items));
   $items = array('* - load content from any source', '*.example.com - load content from example.com and all its subdomains', 'example.com:* - load content from example.com via any port.  Otherwise, it will use your website default port');
   $args['!wildcards'] = theme('item_list', array('items' => $items));
-  $args['!spec'] = l(t('specification page'), 'https://wiki.mozilla.org/Security/CSP/Specification');
+  $args['!spec'] = l(t('specification page'), 'https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html');
   $args['!bookmarklet'] = l(t('special bookmarklet'), 'http://brandon.sternefamily.net/posts/2010/10/content-security-policy-recommendation-bookmarklet/');
   $description = t("Set up security policy for different types of content. Don't use www prefix. Keywords are: !keywords Wildcards (*) are allowed: !wildcards More information is available at !spec. You may also use !bookmarklet to figure out necessary policies.", $args);
   $form['seckit_xss']['csp']['description'] = array(
@@ -65,22 +70,26 @@ function seckit_admin_form() {
     '#title' => t('Directives'),
     '#description' => $description,
   );
-  // CSP allow directive
-  $form['seckit_xss']['csp']['allow'] = array(
+  // CSP default-src directive
+  $form['seckit_xss']['csp']['default-src'] = array(
     '#type' => 'textfield',
-    '#default_value' => $options['seckit_xss']['csp']['allow'],
-    '#title' => 'allow',
-    '#description' => t("Specify security policy for all types of content, which are not specified further. Default is 'self'."),
+    '#default_value' => $options['seckit_xss']['csp']['default-src'],
+    '#title' => 'default-src',
+    '#description' => t("Specify security policy for all types of content, which are not specified further (frame-ancestors excepted). Default is 'self'."),
   );
-  // CSP options directive
-  $items = array('inline-scripts - allow inline scripts and javascript: URI', 'eval-script - allow eval() function and allow code to be generated from strings in new Function() constructor, setTimeout() and setInterval()');
-  $args['!options'] = theme('item_list', array('items' => $items));
-  $description = t('Set up specific security policy options. Separate options with space. Possible values are: !options', $args);
-  $form['seckit_xss']['csp']['options'] = array(
+  // CSP script-src directive
+  $form['seckit_xss']['csp']['script-src'] = array(
     '#type' => 'textfield',
-    '#default_value' => $options['seckit_xss']['csp']['options'],
-    '#title' => 'options',
-    '#description' => $description,
+    '#default_value' => $options['seckit_xss']['csp']['script-src'],
+    '#title' => 'script-src',
+    '#description' => t('Specify trustworthy sources for &lt;script&gt; elements.'),
+  );
+  // CSP object-src directive
+  $form['seckit_xss']['csp']['object-src'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $options['seckit_xss']['csp']['object-src'],
+    '#title' => 'object-src',
+    '#description' => t('Specify trustworthy sources for &lt;object&gt;, &lt;embed&gt; and &lt;applet&gt; elements.'),
   );
   // CSP img-src directive
   $form['seckit_xss']['csp']['img-src'] = array(
@@ -96,19 +105,12 @@ function seckit_admin_form() {
     '#title' => 'media-src',
     '#description' => t('Specify trustworthy sources for &lt;audio&gt; and &lt;video&gt; elements.'),
   );
-  // CSP script-src directive
-  $form['seckit_xss']['csp']['script-src'] = array(
+  // CSP style-src directive
+  $form['seckit_xss']['csp']['style-src'] = array(
     '#type' => 'textfield',
-    '#default_value' => $options['seckit_xss']['csp']['script-src'],
-    '#title' => 'script-src',
-    '#description' => t('Specify trustworthy sources for &lt;script&gt; elements.'),
-  );
-  // CSP object-src directive
-  $form['seckit_xss']['csp']['object-src'] = array(
-    '#type' => 'textfield',
-    '#default_value' => $options['seckit_xss']['csp']['object-src'],
-    '#title' => 'object-src',
-    '#description' => t('Specify trustworthy sources for &lt;object&gt;, &lt;embed&gt; and &lt;applet&gt; elements.'),
+    '#default_value' => $options['seckit_xss']['csp']['style-src'],
+    '#title' => 'style-src',
+    '#description' => t('Specify trustworthy sources for stylesheets. Note, that inline stylesheets and style attributes of HTML elements are allowed.'),
   );
   // CSP frame-src directive
   $form['seckit_xss']['csp']['frame-src'] = array(
@@ -131,13 +133,6 @@ function seckit_admin_form() {
     '#title' => 'xhr-src',
     '#description' => t('Specify trustworthy sources for XmlHttpRequest connections.'),
   );
-  // CSP style-src directive
-  $form['seckit_xss']['csp']['style-src'] = array(
-    '#type' => 'textfield',
-    '#default_value' => $options['seckit_xss']['csp']['style-src'],
-    '#title' => 'style-src',
-    '#description' => t('Specify trustworthy sources for stylesheets. Note, that inline stylesheets and style attributes of HTML elements are allowed.'),
-  );
   // CSP frame-ancestors directive
   $form['seckit_xss']['csp']['frame-ancestors'] = array(
     '#type' => 'textfield',
@@ -152,6 +147,30 @@ function seckit_admin_form() {
     '#title' => 'report-uri',
     '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another report place. Default is admin/config/system/csp-report.'),
   );
+  // CSP policy-uri directive
+  $form['seckit_xss']['csp']['policy-uri'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $options['seckit_xss']['csp']['policy-uri'],
+    '#title' => 'policy-uri',
+    '#description' => t("Specify URI to a file containing the policy. Note, that policy-uri must only be declated when no other policies are specified. Otherwise, user-agent enforces default-src 'none'."),
+  );
+  // CSP options directive
+  $items = array(
+    'inline-scripts - allow inline scripts and javascript: URI',
+    'eval-script - allow eval() function and allow code to be generated from strings in new Function() constructor, setTimeout() and setInterval()');
+  $args['!options'] = theme('item_list', array('items' => $items));
+  $description = t('Set up specific security policy options. Separate options with space. Possible values are: !options', $args);
+  $form['seckit_xss']['csp']['options'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $options['seckit_xss']['csp']['options'],
+    '#title' => 'options',
+    '#description' => $description,
+  );
+
+
+
+
+
 
   // fieldset for X-XSS-Protection
   $form['seckit_xss']['x_xss'] = array(
