@@ -73,7 +73,7 @@ function seckit_init() {
 }
 
 /**
- * Sends X-Content-Security-Policy HTTP header.
+ * Sends Content Security Policy HTTP headers.
  *
  * Header specifies Content Security Policy (CSP) for a website,
  * which is used to allow/block content from selected sources.
