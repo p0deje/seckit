@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Install/uninstall actions for SecKit.
+ * Install/update/uninstall actions for SecKit.
  */
 
 /**

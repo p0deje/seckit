@@ -152,14 +152,9 @@ function seckit_admin_form() {
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['policy-uri'],
     '#title' => 'policy-uri',
-    '#description' => t("Specify URI to a file containing the policy. Note, that policy-uri must only be declated when no other policies are specified. Otherwise, user-agent enforces default-src 'none'."),
-  );
+    '#description' => t("Specify URI to a file containing the policy. It should be text/x-content-security-policy content-type. Note, that policy-uri must only be declated when no other policies are specified. Otherwise, user-agent enforces default-src 'none'. Thus, other directives will be ignored by Security Kit."),);
   // CSP options directive
-  $items = array(
-    'inline-scripts - allow inline scripts and javascript: URI',
-    'eval-script - allow eval() function and allow code to be generated from strings in new Function() constructor, setTimeout() and setInterval()');
-  $args['!options'] = theme('item_list', array('items' => $items));
-  $description = t('Set up specific security policy options. Separate options with space. Possible values are: !options', $args);
+  $description = t('Set up specific security policy options. Separate options with space.');
   $form['seckit_xss']['csp']['options'] = array(
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['options'],
