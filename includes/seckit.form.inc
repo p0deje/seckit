@@ -167,11 +167,6 @@ function seckit_admin_form() {
     '#description' => $description,
   );
 
-
-
-
-
-
   // fieldset for X-XSS-Protection
   $form['seckit_xss']['x_xss'] = array(
     '#type' => 'fieldset',
