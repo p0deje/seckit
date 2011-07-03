@@ -142,10 +142,13 @@ function _seckit_csp($apply) {
 
     // send HTTP response header
     if ($csp_report_only) {
-      drupal_add_http_header('X-Content-Security-Policy-Report-Only', $directives); // use report-only mode
+      // use report-only mode
+      drupal_add_http_header('X-Content-Security-Policy-Report-Only', $directives);
+      drupal_add_http_header('X-WebKit-CSP-Report-Only', $directives);
     }
     else {
       drupal_add_http_header('X-Content-Security-Policy', $directives);
+      drupal_add_http_header('X-WebKit-CSP', $directives);
     }
   }
 }
