@@ -42,7 +42,7 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_xss']['csp']['checkbox'],
     '#title' => t('X-Content-Security-Policy'),
     '#return_value' => 1,
-    '#description' => t('Send X-Content-Security-Policy HTTP response header with the list of Content Security Policy directives.'),
+    '#description' => t('Send X-Content-Security-Policy (supported by Mozilla Firefox) and X-WebKit-CSP (supported by Google Chrome) HTTP response headers with the list of Content Security Policy directives.'),
   );
   // CSP report-only mode
   $form['seckit_xss']['csp']['report-only'] = array(
@@ -150,7 +150,7 @@ function seckit_admin_form() {
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['report-uri'],
     '#title' => 'report-uri',
-    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another rerport place. Default is admin/config/system/csp-report.'),
+    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another report place. Default is admin/config/system/csp-report.'),
   );
 
   // fieldset for X-XSS-Protection
