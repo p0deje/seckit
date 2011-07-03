@@ -316,12 +316,6 @@ function seckit_admin_form() {
  * Validates Content Security Policy and HTTP Strict Transport Security.
  */
 function seckit_admin_form_validate($form, &$form_state) {
-  // if Content Security Policy is enabled, allow directive must be specified.
-  $csp_enable = $form_state['values']['seckit_xss']['csp']['checkbox'];
-  $csp_allow = $form_state['values']['seckit_xss']['csp']['allow'];
-  if (($csp_enable == 1) && (!$csp_allow)) {
-    form_error($form['seckit_xss']['csp']['allow'], t("You have to set up Content Security Policy allow directive. Default is 'self'."));
-  }
   // if HTTP Strict Transport Security is enabled, max-age must be specified.
   // HSTS max-age should only contain digits.
   $hsts_enable = $form_state['values']['seckit_ssl']['hsts'];
