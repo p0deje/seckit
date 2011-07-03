@@ -368,16 +368,17 @@ function _seckit_get_options() {
   // set default options
   $default['seckit_xss']['csp'] = array(
     'report-only' => 0,
-    'options' => '',
-    'img-src' => '',
-    'media-src' => '',
     'script-src' => '',
     'object-src' => '',
+    'img-src' => '',
+    'media-src' => '',
+    'style-src' => '',
     'frame-src' => '',
     'font-src' => '',
     'xhr-src' => '',
-    'style-src' => '',
     'frame-ancestors' => '',
+    'policy-uri' => '',
+    'options' => '',
   );
   $default['seckit_csrf'] = array(
     'origin' => 1,
@@ -401,8 +402,8 @@ function _seckit_get_options() {
     $result['seckit_xss']['csp']['checkbox'] = 0;
   }
   // set CSP allow directive to self
-  if (!isset($result['seckit_xss']['csp']['allow'])) {
-    $result['seckit_xss']['csp']['allow'] = "'self'";
+  if (!isset($result['seckit_xss']['csp']['default-src'])) {
+    $result['seckit_xss']['csp']['default-src'] = "'self'";
   }
   // set CSP report-uri directive to menu callback
   if (!isset($result['seckit_xss']['csp']['report-uri'])) {
