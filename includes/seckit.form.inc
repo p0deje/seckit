@@ -301,7 +301,7 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_ssl']['hsts_subdomains'],
   );
 
-  // validation
+  // validation and submit
   $form['#validate'][] = 'seckit_admin_form_validate';
 
   return system_settings_form($form);
