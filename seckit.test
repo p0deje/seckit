@@ -247,7 +247,6 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
     $path = drupal_get_path('module', 'seckit');
     $code = '<style type="text/css" media="all">@import url("' . $base_url . '/' . $path . '/css/seckit.override_style.css';
-    debug($code);
     $this->assertRaw($code,
       t('Style override CSS is loaded.'));
   }
