@@ -1,3 +1,9 @@
+SecKit 1.1
+-------------
+#1124380: Updated CSP to the new specification
+#1188984: Added Google Chrome CSP support
+
+
 SecKit 1.0
 -------------
 Initial release. Supports Drupal 6.x
