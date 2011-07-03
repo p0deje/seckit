@@ -308,7 +308,7 @@ function seckit_admin_form() {
 }
 
 /**
- * Validates Content Security Policy and HTTP Strict Transport Security.
+ * Validates HTTP Strict Transport Security.
  */
 function seckit_admin_form_validate($form, &$form_state) {
   // if HTTP Strict Transport Security is enabled, max-age must be specified.
