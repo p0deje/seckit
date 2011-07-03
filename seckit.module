@@ -341,8 +341,8 @@ function _seckit_override_style($apply) {
  * HTTP Strict-Transport-Security (HSTS) header prevents eavesdropping and MITM attacks like SSLStrip,
  * forces user-agent to send requests in HTTPS-only mode and convert HTTP links into secure.
  *
- * Implementation of STS is based on the specification draft available at
- * http://tools.ietf.org/id/draft-ietf-websec-strict-transport-sec-00.txt
+ * Implementation of HSTS is based on the specification draft available at
+ * http://tools.ietf.org/html/draft-hodges-strict-transport-sec-02
  */
 function _seckit_hsts($apply) {
   if ($apply) {
