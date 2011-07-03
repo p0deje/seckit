@@ -44,7 +44,9 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
 
     $this->assertFalse($this->drupalGetHeader('X-Content-Security-Policy'),
-      t('Content Security Policy is disabled'));
+      t('Content Security Policy is disabled (Mozilla)'));
+    $this->assertFalse($this->drupalGetHeader('X-WebKit-CSP'),
+      t('Content Security Policy is disabled (Chrome)'));
   }
 
   /**
@@ -70,7 +72,9 @@ class SecKitTestCase extends DrupalWebTestCase {
 
     $expected = 'allow *; options inline-scripts eval-script; img-src *; media-src *; script-src *; object-src *; frame-src *; font-src *; xhr-src *; style-src *; frame-ancestors *; report-uri admin/config/system/seckit/csp-report';
     $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
-      t('X-Content-Security has all the directves'));
+      t('X-Content-Security-Policy has all the directves'));
+    $this->assertEqual($expected, $this->drupalGetHeader('X-WebKit-CSP'),
+      t('X-WebKit-CSP has all the directves'));
   }
 
   /**
@@ -82,7 +86,9 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
 
     $this->assertTrue($this->drupalGetHeader('X-Content-Security-Policy-Report-Only'),
-      t('Content Security Policy is in report-only mode.'));
+      t('Content Security Policy is in report-only mode (Mozilla)'));
+    $this->assertTrue($this->drupalGetHeader('X-WebKit-CSP-Report-Only'),
+      t('Content Security Policy is in report-only mode (Chrome)'));
   }
 
   /**
