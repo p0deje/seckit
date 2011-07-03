@@ -145,7 +145,7 @@ function seckit_admin_form() {
     '#type' => 'textfield',
     '#default_value' => $options['seckit_xss']['csp']['report-uri'],
     '#title' => 'report-uri',
-    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another report place. Default is admin/config/system/csp-report.'),
+    '#description' => t('Specify URI to which user-agents report CSP violations. Leave it as default unless you want another report place. Default is admin/config/system/seckit/csp-report.'),
   );
   // CSP policy-uri directive
   $form['seckit_xss']['csp']['policy-uri'] = array(
