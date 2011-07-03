@@ -73,13 +73,13 @@ function seckit_init() {
 }
 
 /**
- * Sends X-Content-Security-Policy HTTP header.
+ * Sends Content Security Policy HTTP headers.
  *
  * Header specifies Content Security Policy (CSP) for a website,
  * which is used to allow/block content from selected sources.
  *
  * Based on specification available at
- * https://wiki.mozilla.org/Security/CSP/Specification
+ * https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html
  */
 function _seckit_csp($apply) {
   if ($apply) {
@@ -87,65 +87,82 @@ function _seckit_csp($apply) {
     $options = _seckit_get_options();
     $options = $options['seckit_xss']['csp'];
     $csp_report_only = $options['report-only'];
-    $csp_allow = $options['allow'];
-    $csp_options = $options['options'];
-    $csp_img_src = $options['img-src'];
-    $csp_media_src = $options['media-src'];
+    $csp_default_src = $options['default-src'];
     $csp_script_src = $options['script-src'];
     $csp_object_src = $options['object-src'];
+    $csp_img_src = $options['img-src'];
+    $csp_media_src = $options['media-src'];
+    $csp_style_src = $options['style-src'];
     $csp_frame_src = $options['frame-src'];
     $csp_font_src = $options['font-src'];
     $csp_xhr_src = $options['xhr-src'];
-    $csp_style_src = $options['style-src'];
     $csp_frame_ancestors = $options['frame-ancestors'];
     $csp_report_uri = $options['report-uri'];
+    $csp_policy_uri = $options['policy-uri'];
+    $csp_options = $options['options'];
 
     // prepare directives
     $directives = array();
-    if ($csp_allow) {
-      $directives[] = 'allow ' . $csp_allow;
-    }
-    if ($csp_options) {
-      $directives[] = 'options ' . $csp_options;
-    }
-    if ($csp_img_src) {
-      $directives[] = 'img-src ' . $csp_img_src;
-    }
-    if ($csp_media_src) {
-      $directives[] = 'media-src ' . $csp_media_src;
-    }
-    if ($csp_script_src) {
-      $directives[] = 'script-src ' . $csp_script_src;
-    }
-    if ($csp_object_src) {
-      $directives[] = 'object-src ' . $csp_object_src;
-    }
-    if ($csp_frame_src) {
-      $directives[] = 'frame-src ' . $csp_frame_src;
-    }
-    if ($csp_font_src) {
-      $directives[] = 'font-src ' . $csp_font_src;
-    }
-    if ($csp_xhr_src) {
-      $directives[] = 'xhr-src ' . $csp_xhr_src;
-    }
-    if ($csp_style_src) {
-      $directives[] = 'style-src ' . $csp_style_src;
-    }
-    if ($csp_frame_ancestors) {
-      $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
-    }
-    if ($csp_report_uri) {
-      $directives[] = 'report-uri ' . $csp_report_uri;
-    }
-    $directives = implode('; ', $directives);
 
-    // send HTTP response header
-    if ($csp_report_only) {
-      drupal_add_http_header('X-Content-Security-Policy-Report-Only', $directives); // use report-only mode
+    // we should allow only policy-uri if it's declared
+    if ($csp_policy_uri) {
+      $directives = 'policy-uri ' . $csp_policy_uri;
     }
+    // otherwise prepare directives
     else {
-      drupal_add_http_header('X-Content-Security-Policy', $directives);
+      // default-src must be explicitly set
+      if ($csp_default_src) {
+        $directives[] = 'default-src ' . $csp_default_src;
+        // directives one-by-one
+        if ($csp_script_src) {
+          $directives[] = 'script-src ' . $csp_script_src;
+        }
+        if ($csp_object_src) {
+          $directives[] = 'object-src ' . $csp_object_src;
+        }
+        if ($csp_img_src) {
+          $directives[] = 'img-src ' . $csp_img_src;
+        }
+        if ($csp_media_src) {
+          $directives[] = 'media-src ' . $csp_media_src;
+        }
+        if ($csp_style_src) {
+          $directives[] = 'style-src ' . $csp_style_src;
+        }
+        if ($csp_frame_src) {
+          $directives[] = 'frame-src ' . $csp_frame_src;
+        }
+        if ($csp_font_src) {
+          $directives[] = 'font-src ' . $csp_font_src;
+        }
+        if ($csp_xhr_src) {
+          $directives[] = 'xhr-src ' . $csp_xhr_src;
+        }
+        if ($csp_frame_ancestors) {
+          $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
+        }
+        if ($csp_report_uri) {
+          $directives[] = 'report-uri ' . $csp_report_uri;
+        }
+        if ($csp_options) {
+          $directives[] = 'options ' . $csp_options;
+        }
+        // merge directives
+        $directives = implode('; ', $directives);
+      }
+    }
+
+    // send HTTP response header if directives were prepared
+    if ($directives) {
+      if ($csp_report_only) {
+        // use report-only mode
+        drupal_add_http_header('X-Content-Security-Policy-Report-Only', $directives);
+        drupal_add_http_header('X-WebKit-CSP-Report-Only', $directives);
+      }
+      else {
+        drupal_add_http_header('X-Content-Security-Policy', $directives);
+        drupal_add_http_header('X-WebKit-CSP', $directives);
+      }
     }
   }
 }
@@ -324,8 +341,8 @@ function _seckit_override_style($apply) {
  * HTTP Strict-Transport-Security (HSTS) header prevents eavesdropping and MITM attacks like SSLStrip,
  * forces user-agent to send requests in HTTPS-only mode and convert HTTP links into secure.
  *
- * Implementation of STS is based on the specification draft available at
- * http://tools.ietf.org/id/draft-ietf-websec-strict-transport-sec-00.txt
+ * Implementation of HSTS is based on the specification draft available at
+ * http://tools.ietf.org/html/draft-hodges-strict-transport-sec-02
  */
 function _seckit_hsts($apply) {
   if ($apply) {
@@ -351,16 +368,17 @@ function _seckit_get_options() {
   // set default options
   $default['seckit_xss']['csp'] = array(
     'report-only' => 0,
-    'options' => '',
-    'img-src' => '',
-    'media-src' => '',
     'script-src' => '',
     'object-src' => '',
+    'img-src' => '',
+    'media-src' => '',
+    'style-src' => '',
     'frame-src' => '',
     'font-src' => '',
     'xhr-src' => '',
-    'style-src' => '',
     'frame-ancestors' => '',
+    'policy-uri' => '',
+    'options' => '',
   );
   $default['seckit_csrf'] = array(
     'origin' => 1,
@@ -384,8 +402,8 @@ function _seckit_get_options() {
     $result['seckit_xss']['csp']['checkbox'] = 0;
   }
   // set CSP allow directive to self
-  if (!isset($result['seckit_xss']['csp']['allow'])) {
-    $result['seckit_xss']['csp']['allow'] = "'self'";
+  if (!isset($result['seckit_xss']['csp']['default-src'])) {
+    $result['seckit_xss']['csp']['default-src'] = "'self'";
   }
   // set CSP report-uri directive to menu callback
   if (!isset($result['seckit_xss']['csp']['report-uri'])) {
