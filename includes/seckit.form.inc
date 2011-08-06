@@ -204,7 +204,7 @@ function seckit_admin_form() {
     '#description' => t('Check Origin HTTP request header.'),
   );
   // Origin whitelist
-  $description = t('Comma separated list of trsutworthy sources. Do not enter your website URL - it is automatically added. Syntax of the source is: [protocol] :// [host] : [port] . E.g, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
+  $description = t('Comma separated list of trustworthy sources. Do not enter your website URL - it is automatically added. Syntax of the source is: [protocol] :// [host] : [port] . E.g, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
   $form['seckit_csrf']['origin_whitelist'] = array(
     '#type' => 'textfield',
     '#title' => t('Allow requests from'),
@@ -299,6 +299,35 @@ function seckit_admin_form() {
     '#description' => t('Force HTTP Strict Transport Security for all subdomains. If enabled, HSTS policy will be applied for all subdomains, otherwise only for the main domain.'),
     '#return_value' => 1,
     '#default_value' => $options['seckit_ssl']['hsts_subdomains'],
+  );
+
+  // main fieldset for various
+  $form['various'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Various'),
+    '#collapsible' => TRUE,
+    '#tree' => TRUE,
+    '#description' => t('Various security enhancments'),
+  );
+
+  // enable/disable From-Origin
+  $args['!spec'] = l(t('specification'), 'http://www.w3.org/TR/from-origin/');
+  $form['various']['from_origin'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('From-Origin'),
+    '#default_value' => $options['various']['origin'],
+    '#description' => t('Send From-Origin HTTP response header. This forces user-agent to retrieve embedded content from your site only to listed sources. More information is available at !spec page.', $args),
+  );
+  // From-Origin sources
+  $items = array('same - allow loading of content only from your site', 'serialized origin - [protocol] :// [host] : [port] . E.g, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
+  $args['!items'] = theme('item_list', $items);
+  $description = t('Comma separated list of trustworthy sources. ');
+  $form['various']['from_origin_sources'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Allow loading content to'),
+    '#default_value' => $options['various']['from_origin_sources'],
+    '#size' => 90,
+    '#description' => $description,
   );
 
   // validation and submit
