@@ -3,6 +3,7 @@ Drupal.behaviors.seckit = {
     seckit_listener_hsts(context);
     seckit_listener_csp(context);
     seckit_listener_origin(context);
+    seckit_listener_various(context);
     (function ($) {
       $('#edit-seckit-ssl-hsts', context).click(function () {
         seckit_listener_hsts(context)
@@ -15,6 +16,9 @@ Drupal.behaviors.seckit = {
       });
       $('#edit-seckit-csrf-origin', context).click(function () {
         seckit_listener_origin(context)
+      });
+      $('#edit-seckit-various-from-origin', context).click(function () {
+        seckit_listener_various(context)
       });
     })(jQuery);
   }
@@ -116,6 +120,21 @@ function seckit_listener_origin(context) {
     }
     else {
       $('#edit-seckit-csrf-origin-whitelist', context).attr('disabled', 'disabled');
+    }
+  })(jQuery);
+}
+
+/**
+ * Adds/removes attributes for input fields in
+ * Various fieldset.
+ */
+function seckit_listener_various(context) {
+  (function ($) {
+    if ($('#edit-seckit-various-from-origin').is(':checked')) {
+      $('#edit-seckit-various-from-origin-destination', context).removeAttr('disabled');
+    }
+    else {
+      $('#edit-seckit-various-from-origin-destination', context).attr('disabled', 'disabled');
     }
   })(jQuery);
 }
