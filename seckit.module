@@ -228,7 +228,7 @@ function _seckit_x_xss($apply) {
  * Applies to all HTTP request methods except GET and HEAD.
  *
  * Implementation of Origin is based on specification draft available at
- * http://tools.ietf.org/html/draft-abarth-origin-07
+ * http://tools.ietf.org/html/draft-abarth-origin-09
  */
 function _seckit_origin($apply) {
   if ($apply) {
@@ -244,8 +244,8 @@ function _seckit_origin($apply) {
     // ignore GET and HEAD requests, ignore requests without Origin
     if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
       $origin = $_SERVER['HTTP_ORIGIN'];
-      // check Origin
-      if (!in_array($origin, $whitelist)) {
+      // check Origin; make sure it's not null
+      if ($origin != 'null' && !in_array($origin, $whitelist)) {
         $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
         drupal_access_denied(); // send 403 response and show Access Denied page
         // prepare information
