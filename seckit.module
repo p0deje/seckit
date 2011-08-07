@@ -42,13 +42,7 @@ function seckit_menu() {
   // menu callback for CSP reporting
   $items['admin/config/system/seckit/csp-report'] = array(
     'page callback' => '_seckit_csp_report',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
-  // menu callback for CSP reporting
-  $items['admin/settings/seckit/csp-report'] = array(
-    'page callback' => '_seckit_csp_report',
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
