@@ -312,22 +312,21 @@ function seckit_admin_form() {
 
   // enable/disable From-Origin
   $args['!spec'] = l(t('specification'), 'http://www.w3.org/TR/from-origin/');
-  $form['various']['from_origin'] = array(
+  $form['seckit_various']['from_origin'] = array(
     '#type' => 'checkbox',
     '#title' => t('From-Origin'),
     '#default_value' => $options['various']['origin'],
     '#description' => t('Send From-Origin HTTP response header. This forces user-agent to retrieve embedded content from your site only to listed destination. More information is available at !spec page.', $args),
   );
   // From-Origin destination
-  $items = array('same - allow loading of content only from your site', 'serialized origin - address of trustworthy destination. For example, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
+  $items = array('same - allow loading of content only from your site. Default value.', 'serialized origin - address of trustworthy destination. For example, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
   $args['!items'] = theme('item_list', $items);
-  $description = t('Trustworthy destination.');
-  $form['various']['from_origin_destination'] = array(
+  $form['seckit_various']['from_origin_destination'] = array(
     '#type' => 'textfield',
     '#title' => t('Allow loading content to'),
     '#default_value' => $options['various']['from_origin_destination'],
     '#size' => 90,
-    '#description' => $description,
+    '#description' => t('Trustworthy destination. Possible variants are: !items', $args),
   );
 
   // validation
@@ -340,6 +339,12 @@ function seckit_admin_form() {
  * Validates HTTP Strict Transport Security.
  */
 function seckit_admin_form_validate($form, &$form_state) {
+  // if From-Origin is enabled, it should be explicitly set
+  $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
+  $from_origin_destination = $form_state['values']['seckit_various']['from_origin_destination'];
+  if (($from_origin_enable == 1) && (!$from_origin_destination)) {
+    form_error($form['seckit_various']['from_origin_destination'], t("You have to set up trustworthy destination for From-Origin HTTP response header. Default is same."));
+  }
   // if HTTP Strict Transport Security is enabled, max-age must be specified.
   // HSTS max-age should only contain digits.
   $hsts_enable = $form_state['values']['seckit_ssl']['hsts'];
