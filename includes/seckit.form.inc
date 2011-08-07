@@ -307,7 +307,7 @@ function seckit_admin_form() {
     '#title' => t('Various'),
     '#collapsible' => TRUE,
     '#tree' => TRUE,
-    '#description' => t('Various security enhancements'),
+    '#description' => t('Configure various unsorted security enhancements'),
   );
 
   // enable/disable From-Origin
