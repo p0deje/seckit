@@ -42,13 +42,7 @@ function seckit_menu() {
   // menu callback for CSP reporting
   $items['admin/config/system/seckit/csp-report'] = array(
     'page callback' => '_seckit_csp_report',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
-  // menu callback for CSP reporting
-  $items['admin/settings/seckit/csp-report'] = array(
-    'page callback' => '_seckit_csp_report',
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -116,46 +110,44 @@ function _seckit_csp($apply) {
     }
     // otherwise prepare directives
     else {
-      // default-src must be explicitly set
       if ($csp_default_src) {
         $directives[] = 'default-src ' . $csp_default_src;
-        // directives one-by-one
-        if ($csp_script_src) {
-          $directives[] = 'script-src ' . $csp_script_src;
-        }
-        if ($csp_object_src) {
-          $directives[] = 'object-src ' . $csp_object_src;
-        }
-        if ($csp_img_src) {
-          $directives[] = 'img-src ' . $csp_img_src;
-        }
-        if ($csp_media_src) {
-          $directives[] = 'media-src ' . $csp_media_src;
-        }
-        if ($csp_style_src) {
-          $directives[] = 'style-src ' . $csp_style_src;
-        }
-        if ($csp_frame_src) {
-          $directives[] = 'frame-src ' . $csp_frame_src;
-        }
-        if ($csp_font_src) {
-          $directives[] = 'font-src ' . $csp_font_src;
-        }
-        if ($csp_xhr_src) {
-          $directives[] = 'xhr-src ' . $csp_xhr_src;
-        }
-        if ($csp_frame_ancestors) {
-          $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
-        }
-        if ($csp_report_uri) {
-          $directives[] = 'report-uri ' . $csp_report_uri;
-        }
-        if ($csp_options) {
-          $directives[] = 'options ' . $csp_options;
-        }
-        // merge directives
-        $directives = implode('; ', $directives);
       }
+      if ($csp_script_src) {
+        $directives[] = 'script-src ' . $csp_script_src;
+      }
+      if ($csp_object_src) {
+        $directives[] = 'object-src ' . $csp_object_src;
+      }
+      if ($csp_img_src) {
+        $directives[] = 'img-src ' . $csp_img_src;
+      }
+      if ($csp_media_src) {
+        $directives[] = 'media-src ' . $csp_media_src;
+      }
+      if ($csp_style_src) {
+        $directives[] = 'style-src ' . $csp_style_src;
+      }
+      if ($csp_frame_src) {
+        $directives[] = 'frame-src ' . $csp_frame_src;
+      }
+      if ($csp_font_src) {
+        $directives[] = 'font-src ' . $csp_font_src;
+      }
+      if ($csp_xhr_src) {
+        $directives[] = 'xhr-src ' . $csp_xhr_src;
+      }
+      if ($csp_frame_ancestors) {
+        $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
+      }
+      if ($csp_report_uri) {
+        $directives[] = 'report-uri ' . $csp_report_uri;
+      }
+      if ($csp_options) {
+        $directives[] = 'options ' . $csp_options;
+      }
+      // merge directives
+      $directives = implode('; ', $directives);
     }
 
     // send HTTP response header if directives were prepared
@@ -230,7 +222,7 @@ function _seckit_x_xss($apply) {
  * Applies to all HTTP request methods except GET and HEAD.
  *
  * Implementation of Origin is based on specification draft available at
- * http://tools.ietf.org/html/draft-abarth-origin-07
+ * http://tools.ietf.org/html/draft-abarth-origin-09
  */
 function _seckit_origin($apply) {
   if ($apply) {
@@ -246,8 +238,8 @@ function _seckit_origin($apply) {
     // ignore GET and HEAD requests, ignore requests without Origin
     if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
       $origin = $_SERVER['HTTP_ORIGIN'];
-      // check Origin
-      if (!in_array($origin, $whitelist)) {
+      // check Origin; make sure it's not null
+      if ($origin != 'null' && !in_array($origin, $whitelist)) {
         $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
         drupal_access_denied(); // send 403 response and show Access Denied page
         // prepare information

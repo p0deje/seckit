@@ -7,5 +7,3 @@ files[] = seckit.install
 files[] = seckit.module
 files[] = seckit.test
 files[] = includes/seckit.form.inc
-scripts[] = js/seckit.document_write.js
-scripts[] = js/seckit.listener.js
