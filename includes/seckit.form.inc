@@ -316,21 +316,21 @@ function seckit_admin_form() {
     '#type' => 'checkbox',
     '#title' => t('From-Origin'),
     '#default_value' => $options['various']['origin'],
-    '#description' => t('Send From-Origin HTTP response header. This forces user-agent to retrieve embedded content from your site only to listed sources. More information is available at !spec page.', $args),
+    '#description' => t('Send From-Origin HTTP response header. This forces user-agent to retrieve embedded content from your site only to listed destination. More information is available at !spec page.', $args),
   );
-  // From-Origin sources
-  $items = array('same - allow loading of content only from your site', 'serialized origin - [protocol] :// [host] : [port] . E.g, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
+  // From-Origin destination
+  $items = array('same - allow loading of content only from your site', 'serialized origin - address of trustworthy destination. For example, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
   $args['!items'] = theme('item_list', $items);
-  $description = t('Comma separated list of trustworthy sources. ');
-  $form['various']['from_origin_sources'] = array(
+  $description = t('Trustworthy destination.');
+  $form['various']['from_origin_destination'] = array(
     '#type' => 'textfield',
     '#title' => t('Allow loading content to'),
-    '#default_value' => $options['various']['from_origin_sources'],
+    '#default_value' => $options['various']['from_origin_destination'],
     '#size' => 90,
     '#description' => $description,
   );
 
-  // validation and submit
+  // validation
   $form['#validate'][] = 'seckit_admin_form_validate';
 
   return system_settings_form($form);
