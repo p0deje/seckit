@@ -63,7 +63,7 @@ function seckit_init() {
   _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
   _seckit_override_style($options['seckit_clickjacking']['override_style']);
   _seckit_hsts($options['seckit_ssl']['hsts']);
-  _seckit_from_origin($options['seckit_various']['from_origin_destination']);
+  _seckit_from_origin($options['seckit_various']['from_origin']);
 
   // load jQuery listener
   if ($_GET['q'] == 'admin/config/system/seckit') {
