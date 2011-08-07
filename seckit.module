@@ -92,6 +92,7 @@ function _seckit_csp($apply) {
     // get default/set options
     $options = _seckit_get_options();
     $options = $options['seckit_xss']['csp'];
+    var_dump($options);
     $csp_report_only = $options['report-only'];
     $csp_default_src = $options['default-src'];
     $csp_script_src = $options['script-src'];
@@ -116,51 +117,51 @@ function _seckit_csp($apply) {
     }
     // otherwise prepare directives
     else {
-      // default-src must be explicitly set
       if ($csp_default_src) {
         $directives[] = 'default-src ' . $csp_default_src;
-        // directives one-by-one
-        if ($csp_script_src) {
-          $directives[] = 'script-src ' . $csp_script_src;
-        }
-        if ($csp_object_src) {
-          $directives[] = 'object-src ' . $csp_object_src;
-        }
-        if ($csp_img_src) {
-          $directives[] = 'img-src ' . $csp_img_src;
-        }
-        if ($csp_media_src) {
-          $directives[] = 'media-src ' . $csp_media_src;
-        }
-        if ($csp_style_src) {
-          $directives[] = 'style-src ' . $csp_style_src;
-        }
-        if ($csp_frame_src) {
-          $directives[] = 'frame-src ' . $csp_frame_src;
-        }
-        if ($csp_font_src) {
-          $directives[] = 'font-src ' . $csp_font_src;
-        }
-        if ($csp_xhr_src) {
-          $directives[] = 'xhr-src ' . $csp_xhr_src;
-        }
-        if ($csp_frame_ancestors) {
-          $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
-        }
-        if ($csp_report_uri) {
-          $directives[] = 'report-uri ' . $csp_report_uri;
-        }
-        if ($csp_options) {
-          $directives[] = 'options ' . $csp_options;
-        }
-        // merge directives
-        $directives = implode('; ', $directives);
       }
+      if ($csp_script_src) {
+        $directives[] = 'script-src ' . $csp_script_src;
+      }
+      if ($csp_object_src) {
+        $directives[] = 'object-src ' . $csp_object_src;
+      }
+      if ($csp_img_src) {
+        $directives[] = 'img-src ' . $csp_img_src;
+      }
+      if ($csp_media_src) {
+        $directives[] = 'media-src ' . $csp_media_src;
+      }
+      if ($csp_style_src) {
+        $directives[] = 'style-src ' . $csp_style_src;
+      }
+      if ($csp_frame_src) {
+        $directives[] = 'frame-src ' . $csp_frame_src;
+      }
+      if ($csp_font_src) {
+        $directives[] = 'font-src ' . $csp_font_src;
+      }
+      if ($csp_xhr_src) {
+        $directives[] = 'xhr-src ' . $csp_xhr_src;
+      }
+      if ($csp_frame_ancestors) {
+        $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
+      }
+      if ($csp_report_uri) {
+        $directives[] = 'report-uri ' . $csp_report_uri;
+      }
+      if ($csp_options) {
+        $directives[] = 'options ' . $csp_options;
+      }
+      // merge directives
+      $directives = implode('; ', $directives);
     }
 
     // send HTTP response header if directives were prepared
     if ($directives) {
+      echo 1;
       if ($csp_report_only) {
+        echo 2;
         // use report-only mode
         drupal_set_header('X-Content-Security-Policy-Report-Only: ' . $directives);
         drupal_set_header('X-WebKit-CSP-Report-Only: ' . $directives);
