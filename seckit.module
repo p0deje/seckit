@@ -48,7 +48,7 @@ function seckit_menu() {
   // menu callback for CSP reporting
   $items['admin/settings/seckit/csp-report'] = array(
     'page callback' => '_seckit_csp_report',
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -92,7 +92,6 @@ function _seckit_csp($apply) {
     // get default/set options
     $options = _seckit_get_options();
     $options = $options['seckit_xss']['csp'];
-    var_dump($options);
     $csp_report_only = $options['report-only'];
     $csp_default_src = $options['default-src'];
     $csp_script_src = $options['script-src'];
@@ -159,9 +158,7 @@ function _seckit_csp($apply) {
 
     // send HTTP response header if directives were prepared
     if ($directives) {
-      echo 1;
       if ($csp_report_only) {
-        echo 2;
         // use report-only mode
         drupal_set_header('X-Content-Security-Policy-Report-Only: ' . $directives);
         drupal_set_header('X-WebKit-CSP-Report-Only: ' . $directives);
@@ -336,7 +333,7 @@ function _seckit_ie_mime() {
  * Applies to all HTTP request methods except GET and HEAD.
  *
  * Implementation of Origin is based on specification draft available at
- * http://tools.ietf.org/html/draft-abarth-origin-07
+ * http://tools.ietf.org/html/draft-abarth-origin-09
  */
 function _seckit_origin($apply) {
   if ($apply) {
@@ -352,8 +349,8 @@ function _seckit_origin($apply) {
     // ignore GET and HEAD requests, ignore requests without Origin
     if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
       $origin = $_SERVER['HTTP_ORIGIN'];
-      // check Origin
-      if (!in_array($origin, $whitelist)) {
+      // check Origin; make sure it's not null
+      if ($origin != 'null' && !in_array($origin, $whitelist)) {
         $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
         drupal_access_denied(); // send 403 response and show Access Denied page
         // prepare information
