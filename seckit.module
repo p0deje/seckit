@@ -390,6 +390,9 @@ function _seckit_get_options() {
     'hsts' => 0,
     'hsts_subdomains' => 0,
   );
+  $default['seckit_various'] = array(
+    'from_origin' => 0,
+  );
   // get variables
   $result['seckit_xss'] = variable_get('seckit_xss', $default['seckit_xss']);
   $result['seckit_csrf'] = variable_get('seckit_csrf', $default['seckit_csrf']);
@@ -422,6 +425,10 @@ function _seckit_get_options() {
   // set HSTS max-age to 1000
   if (!isset($result['seckit_ssl']['hsts_max_age'])) {
     $result['seckit_ssl']['hsts_max_age'] = 1000;
+  }
+  // set From-Origin to same
+  if (!isset($result['seckit_various']['from_origin_destination'])) {
+    $result['seckit_various']['from_origin_destination'] = 'same';
   }
   return $result;
 }
