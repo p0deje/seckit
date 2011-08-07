@@ -330,7 +330,7 @@ function _seckit_from_origin($apply) {
   if ($apply) {
     $options = _seckit_get_options();
     $value = $options['seckit_various']['from_origin_destination'];
-    drupal_add_http_header('From-Origin', $value); // set X-Frame-Options to Deny
+    drupal_add_http_header('From-Origin', $value);
   }
 }
 
