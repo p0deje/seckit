@@ -398,6 +398,7 @@ function _seckit_get_options() {
   $result['seckit_csrf'] = variable_get('seckit_csrf', $default['seckit_csrf']);
   $result['seckit_clickjacking'] = variable_get('seckit_clickjacking', $default['seckit_clickjacking']);
   $result['seckit_ssl'] = variable_get('seckit_ssl', $default['seckit_ssl']);
+  $result['seckit_various'] = variable_get('seckit_various', $default['seckit_various']);
   // enable Content Security Policy (CSP)
   if (!isset($result['seckit_xss']['csp']['checkbox'])) {
     $result['seckit_xss']['csp']['checkbox'] = 0;
