@@ -33,6 +33,7 @@ function seckit_admin_form() {
   $form['seckit_xss']['csp'] = array(
     '#type' => 'fieldset',
     '#title' => t('Content Security Policy'),
+    '#collapsible' => TRUE,
     '#tree' => TRUE,
     '#description' => $description,
   );
@@ -166,6 +167,7 @@ function seckit_admin_form() {
   $form['seckit_xss']['x_xss'] = array(
     '#type' => 'fieldset',
     '#title' => t('X-XSS-Protection'),
+    '#collapsible' => TRUE,
     '#tree' => TRUE,
     '#description' => t('X-XSS-Protection HTTP response header controls Microsoft Internet Explorer, Google Chrome and Apple Safari internal XSS filters.'),
   );
