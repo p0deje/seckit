@@ -189,6 +189,23 @@ function seckit_admin_form() {
     '#description' => t('!values', $args),
   );
 
+  // fieldset for X-Content-Type-Options
+  $args['!link'] = l(t('MSDN article'), 'http://blogs.msdn.com/b/ie/archive/2010/10/26/mime-handling-changes-in-internet-explorer.aspx');
+  $form['seckit_xss']['x_content_type'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('X-Content-Type-Options'),
+    '#collapsible' => TRUE,
+    '#tree' => TRUE,
+    '#description' => t('X-Content-Type-Options HTTP response header prevents browser from upsniffing content and serving files with inappropriate MIME type. More information is available at !link.', $args),
+  );
+  // enable/disable X-Content-Type-Options
+  $form['seckit_xss']['x_content_type']['checkbox'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send HTTP response header'),
+    '#default_value' => $options['seckit_xss']['x_content_type']['checkbox'],
+    '#description' => t('Enable X-Content-Type-Options: nosniff HTTP response header.'),
+  );
+
   // main fieldset for CSRF
   $form['seckit_csrf'] = array(
     '#type' => 'fieldset',
