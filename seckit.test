@@ -154,6 +154,26 @@ class SecKitTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Tests disabled X-Content-Type-Options HTTP response header.
+   */
+  public function testDisabledXContentTypeOptions() {
+    $form['seckit_xss[x_content_type][checkbox]'] = FALSE;
+    $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
+    $this->assertFalse($this->drupalGetHeader('X-Content-Type-Options'),
+      t('X-Content-Type-Options is disabled.'));
+  }
+
+  /**
+   * Tests enabled X-Content-Type-Options HTTP response header.
+   */
+  public function testEnabledXContentTypeOptions() {
+    $form['seckit_xss[x_content_type][checkbox]'] = TRUE;
+    $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
+    $this->assertEqual('nosniff', $this->drupalGetHeader('X-Content-Type-Options'),
+      t('X-Content-Type-Options is enabled and set to nosniff.'));
+  }
+
+  /**
    * Tests HTTP Origin allows requests from the site.
    */
   public function testOriginAllowsSite() {
