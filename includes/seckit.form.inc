@@ -318,7 +318,7 @@ function seckit_admin_form() {
     '#type' => 'checkbox',
     '#title' => t('From-Origin'),
     '#default_value' => $options['seckit_various']['from_origin'],
-    '#description' => t('Send From-Origin HTTP response header. This forces user-agent to retrieve embedded content from your site only to listed destination. More information is available at !spec page.', $args),
+    '#description' => t('Enable From-Origin HTTP response header. This forces user-agent to retrieve embedded content from your site only to listed destination. More information is available at !spec page.', $args),
   );
   // From-Origin destination
   $items = array('same - allow loading of content only from your site. Default value.', 'serialized origin - address of trustworthy destination. For example, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
