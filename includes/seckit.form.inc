@@ -33,6 +33,7 @@ function seckit_admin_form() {
   $form['seckit_xss']['csp'] = array(
     '#type' => 'fieldset',
     '#title' => t('Content Security Policy'),
+    '#collapsible' => TRUE,
     '#tree' => TRUE,
     '#description' => $description,
   );
@@ -166,6 +167,7 @@ function seckit_admin_form() {
   $form['seckit_xss']['x_xss'] = array(
     '#type' => 'fieldset',
     '#title' => t('X-XSS-Protection'),
+    '#collapsible' => TRUE,
     '#tree' => TRUE,
     '#description' => t('X-XSS-Protection HTTP response header controls Microsoft Internet Explorer, Google Chrome and Apple Safari internal XSS filters.'),
   );
@@ -187,6 +189,23 @@ function seckit_admin_form() {
     '#description' => t('!values', $args),
   );
 
+  // fieldset for X-Content-Type-Options
+  $args['!link'] = l(t('MSDN article'), 'http://blogs.msdn.com/b/ie/archive/2010/10/26/mime-handling-changes-in-internet-explorer.aspx');
+  $form['seckit_xss']['x_content_type'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('X-Content-Type-Options'),
+    '#collapsible' => TRUE,
+    '#tree' => TRUE,
+    '#description' => t('X-Content-Type-Options HTTP response header prevents browser from upsniffing content and serving files with inappropriate MIME type. More information is available at !link.', $args),
+  );
+  // enable/disable X-Content-Type-Options
+  $form['seckit_xss']['x_content_type']['checkbox'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send HTTP response header'),
+    '#default_value' => $options['seckit_xss']['x_content_type']['checkbox'],
+    '#description' => t('Enable X-Content-Type-Options: nosniff HTTP response header.'),
+  );
+
   // main fieldset for CSRF
   $form['seckit_csrf'] = array(
     '#type' => 'fieldset',
@@ -204,7 +223,7 @@ function seckit_admin_form() {
     '#description' => t('Check Origin HTTP request header.'),
   );
   // Origin whitelist
-  $description = t('Comma separated list of trsutworthy sources. Do not enter your website URL - it is automatically added. Syntax of the source is: [protocol] :// [host] : [port] . E.g, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
+  $description = t('Comma separated list of trustworthy sources. Do not enter your website URL - it is automatically added. Syntax of the source is: [protocol] :// [host] : [port] . E.g, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
   $form['seckit_csrf']['origin_whitelist'] = array(
     '#type' => 'textfield',
     '#title' => t('Allow requests from'),
@@ -301,24 +320,76 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_ssl']['hsts_subdomains'],
   );
 
-  // validation
+  // main fieldset for various
+  $form['seckit_various'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Various'),
+    '#collapsible' => TRUE,
+    '#tree' => TRUE,
+    '#description' => t('Configure various unsorted security enhancements'),
+  );
+
+  // enable/disable From-Origin
+  $args['!spec'] = l(t('specification'), 'http://www.w3.org/TR/from-origin/');
+  $form['seckit_various']['from_origin'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('From-Origin'),
+    '#default_value' => $options['seckit_various']['from_origin'],
+    '#description' => t('Enable From-Origin HTTP response header. This forces user-agent to retrieve embedded content from your site only to listed destination. More information is available at !spec page.', $args),
+  );
+  // From-Origin destination
+  $items = array('same - allow loading of content only from your site. Default value.', 'serialized origin - address of trustworthy destination. For example, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
+  $args['!items'] = theme('item_list', array('items' => $items));
+  $form['seckit_various']['from_origin_destination'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Allow loading content to'),
+    '#default_value' => $options['seckit_various']['from_origin_destination'],
+    '#size' => 90,
+    '#description' => t('Trustworthy destination. Possible variants are: !items', $args),
+  );
+
+  // validation and submit
   $form['#validate'][] = 'seckit_admin_form_validate';
+  $form['#submit'][] = 'seckkit_admin_form_submit';
 
   return system_settings_form($form);
 }
 
 /**
- * Validates HTTP Strict Transport Security.
+ * Validates form data.
  */
 function seckit_admin_form_validate($form, &$form_state) {
+  // if From-Origin is enabled, it should be explicitly set
+  $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
+  $from_origin_destination = $form_state['values']['seckit_various']['from_origin_destination'];
+  if (($from_origin_enable == 1) && (!$from_origin_destination)) {
+    form_error($form['seckit_various']['from_origin_destination'], t('You have to set up trustworthy destination for From-Origin HTTP response header. Default is same.'));
+  }
   // if HTTP Strict Transport Security is enabled, max-age must be specified.
   // HSTS max-age should only contain digits.
   $hsts_enable = $form_state['values']['seckit_ssl']['hsts'];
   $hsts_max_age = $form_state['values']['seckit_ssl']['hsts_max_age'];
   if (($hsts_enable == 1) && (!$hsts_max_age)) {
-    form_error($form['seckit_ssl']['hsts_max_age'], t("You have to set up Max-Age value for HTTP Strict Transport Security. Default is 1000."));
+    form_error($form['seckit_ssl']['hsts_max_age'], t('You have to set up Max-Age value for HTTP Strict Transport Security. Default is 1000.'));
   }
   if (preg_match('/[^0-9]/', $hsts_max_age)) {
     form_error($form['seckit_ssl']['hsts_max_age'], t('Only digits are allowed in HTTP Strict Transport Security Max-Age field.'));
+  }
+}
+
+/**
+ * Submits form.
+ */
+function seckkit_admin_form_submit($form, &$form_state) {
+  $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
+  $x_content_type_options_enable = $form_state['values']['seckit_xss']['x_content_type']['checkbox'];
+  $file_system = file_default_scheme();
+  if ($from_origin_enable && ($file_system == 'public')) {
+    $msg = 'From-Origin HTTP response header will not be served for files because of public file system. It is recommended to enable private file system to ensure provided by From-Origin security.';
+    drupal_set_message($msg, 'warning');
+  }
+  if ($x_content_type_options_enable && ($file_system == 'public')) {
+    $msg = 'X-Content-Type-Options HTTP response header will not be served for files because of public file system. It is recommended to enable private file system to ensure provided by X-Content-Type-Options security.';
+    drupal_set_message($msg, 'warning');
   }
 }

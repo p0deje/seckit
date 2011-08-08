@@ -42,7 +42,7 @@ function seckit_menu() {
   // menu callback for CSP reporting
   $items['admin/config/system/seckit/csp-report'] = array(
     'page callback' => '_seckit_csp_report',
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -59,10 +59,12 @@ function seckit_init() {
   _seckit_origin($options['seckit_csrf']['origin']);
   _seckit_csp($options['seckit_xss']['csp']['checkbox']);
   _seckit_x_xss($options['seckit_xss']['x_xss']['select']);
+  _seckit_x_content_type_options($options['seckit_xss']['x_content_type']['checkbox']);
   _seckit_x_frame($options['seckit_clickjacking']['x_frame']);
   _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
   _seckit_override_style($options['seckit_clickjacking']['override_style']);
   _seckit_hsts($options['seckit_ssl']['hsts']);
+  _seckit_from_origin($options['seckit_various']['from_origin']);
 
   // load jQuery listener
   if ($_GET['q'] == 'admin/config/system/seckit') {
@@ -110,46 +112,44 @@ function _seckit_csp($apply) {
     }
     // otherwise prepare directives
     else {
-      // default-src must be explicitly set
       if ($csp_default_src) {
         $directives[] = 'default-src ' . $csp_default_src;
-        // directives one-by-one
-        if ($csp_script_src) {
-          $directives[] = 'script-src ' . $csp_script_src;
-        }
-        if ($csp_object_src) {
-          $directives[] = 'object-src ' . $csp_object_src;
-        }
-        if ($csp_img_src) {
-          $directives[] = 'img-src ' . $csp_img_src;
-        }
-        if ($csp_media_src) {
-          $directives[] = 'media-src ' . $csp_media_src;
-        }
-        if ($csp_style_src) {
-          $directives[] = 'style-src ' . $csp_style_src;
-        }
-        if ($csp_frame_src) {
-          $directives[] = 'frame-src ' . $csp_frame_src;
-        }
-        if ($csp_font_src) {
-          $directives[] = 'font-src ' . $csp_font_src;
-        }
-        if ($csp_xhr_src) {
-          $directives[] = 'xhr-src ' . $csp_xhr_src;
-        }
-        if ($csp_frame_ancestors) {
-          $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
-        }
-        if ($csp_report_uri) {
-          $directives[] = 'report-uri ' . $csp_report_uri;
-        }
-        if ($csp_options) {
-          $directives[] = 'options ' . $csp_options;
-        }
-        // merge directives
-        $directives = implode('; ', $directives);
       }
+      if ($csp_script_src) {
+        $directives[] = 'script-src ' . $csp_script_src;
+      }
+      if ($csp_object_src) {
+        $directives[] = 'object-src ' . $csp_object_src;
+      }
+      if ($csp_img_src) {
+        $directives[] = 'img-src ' . $csp_img_src;
+      }
+      if ($csp_media_src) {
+        $directives[] = 'media-src ' . $csp_media_src;
+      }
+      if ($csp_style_src) {
+        $directives[] = 'style-src ' . $csp_style_src;
+      }
+      if ($csp_frame_src) {
+        $directives[] = 'frame-src ' . $csp_frame_src;
+      }
+      if ($csp_font_src) {
+        $directives[] = 'font-src ' . $csp_font_src;
+      }
+      if ($csp_xhr_src) {
+        $directives[] = 'xhr-src ' . $csp_xhr_src;
+      }
+      if ($csp_frame_ancestors) {
+        $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
+      }
+      if ($csp_report_uri) {
+        $directives[] = 'report-uri ' . $csp_report_uri;
+      }
+      if ($csp_options) {
+        $directives[] = 'options ' . $csp_options;
+      }
+      // merge directives
+      $directives = implode('; ', $directives);
     }
 
     // send HTTP response header if directives were prepared
@@ -216,6 +216,15 @@ function _seckit_x_xss($apply) {
 }
 
 /**
+ * Sends X-Content-Type-Options HTTP response header.
+ */
+function _seckit_x_content_type_options($apply) {
+  if ($apply) {
+    drupal_add_http_header('X-Content-Type-Options', 'nosniff');
+  }
+}
+
+/**
  * Aborts HTTP request upon invalid Origin HTTP header.
  *
  * Origin HTTP request header contains hostname of the request source.
@@ -224,7 +233,7 @@ function _seckit_x_xss($apply) {
  * Applies to all HTTP request methods except GET and HEAD.
  *
  * Implementation of Origin is based on specification draft available at
- * http://tools.ietf.org/html/draft-abarth-origin-07
+ * http://tools.ietf.org/html/draft-abarth-origin-09
  */
 function _seckit_origin($apply) {
   if ($apply) {
@@ -240,8 +249,8 @@ function _seckit_origin($apply) {
     // ignore GET and HEAD requests, ignore requests without Origin
     if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
       $origin = $_SERVER['HTTP_ORIGIN'];
-      // check Origin
-      if (!in_array($origin, $whitelist)) {
+      // check Origin; make sure it's not null
+      if ($origin != 'null' && !in_array($origin, $whitelist)) {
         $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
         drupal_access_denied(); // send 403 response and show Access Denied page
         // prepare information
@@ -322,6 +331,20 @@ EOT;
 }
 
 /**
+ * Sends From-Origin HTTP response header.
+ *
+ * Implementation is based on specification draft
+ * available at http://www.w3.org/TR/from-origin.
+ */
+function _seckit_from_origin($apply) {
+  if ($apply) {
+    $options = _seckit_get_options();
+    $value = $options['seckit_various']['from_origin_destination'];
+    drupal_add_http_header('From-Origin', $value);
+  }
+}
+
+/**
  * Overrides styles for HTML selectors.
  *
  * Option is useful when you need to allow users to post <iframe>, <frame>,
@@ -392,11 +415,15 @@ function _seckit_get_options() {
     'hsts' => 0,
     'hsts_subdomains' => 0,
   );
+  $default['seckit_various'] = array(
+    'from_origin' => 0,
+  );
   // get variables
   $result['seckit_xss'] = variable_get('seckit_xss', $default['seckit_xss']);
   $result['seckit_csrf'] = variable_get('seckit_csrf', $default['seckit_csrf']);
   $result['seckit_clickjacking'] = variable_get('seckit_clickjacking', $default['seckit_clickjacking']);
   $result['seckit_ssl'] = variable_get('seckit_ssl', $default['seckit_ssl']);
+  $result['seckit_various'] = variable_get('seckit_various', $default['seckit_various']);
   // enable Content Security Policy (CSP)
   if (!isset($result['seckit_xss']['csp']['checkbox'])) {
     $result['seckit_xss']['csp']['checkbox'] = 0;
@@ -413,6 +440,10 @@ function _seckit_get_options() {
   if (!isset($result['seckit_xss']['x_xss']['select'])) {
     $result['seckit_xss']['x_xss']['select'] = SECKIT_X_XSS_1;
   }
+  // enable X-Content-Type-Options
+  if (!isset($result['seckit_xss']['x_content_type']['checkbox'])) {
+    $result['seckit_xss']['x_content_type']['checkbox'] = 1;
+  }
   // enable Origin-based protection
   if (!isset($result['seckit_csrf']['origin'])) {
     $result['seckit_csrf']['origin'] = 1;
@@ -424,6 +455,10 @@ function _seckit_get_options() {
   // set HSTS max-age to 1000
   if (!isset($result['seckit_ssl']['hsts_max_age'])) {
     $result['seckit_ssl']['hsts_max_age'] = 1000;
+  }
+  // set From-Origin to same
+  if (!isset($result['seckit_various']['from_origin_destination'])) {
+    $result['seckit_various']['from_origin_destination'] = 'same';
   }
   return $result;
 }
