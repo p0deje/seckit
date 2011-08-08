@@ -322,7 +322,7 @@ function seckit_admin_form() {
   );
   // From-Origin destination
   $items = array('same - allow loading of content only from your site. Default value.', 'serialized origin - address of trustworthy destination. For example, http://example.com, https://example.com, https://www.example.com, http://www.example.com:8080');
-  $args['!items'] = theme('item_list', $items);
+  $args['!items'] = theme('item_list', array('items' => $items));
   $form['seckit_various']['from_origin_destination'] = array(
     '#type' => 'textfield',
     '#title' => t('Allow loading content to'),
