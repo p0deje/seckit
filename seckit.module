@@ -69,6 +69,7 @@ function seckit_init() {
   _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
   _seckit_override_style($options['seckit_clickjacking']['override_style']);
   _seckit_hsts($options['seckit_ssl']['hsts']);
+  _seckit_from_origin($options['seckit_various']['from_origin']);
 
   // load jQuery listener
   if ($_GET['q'] == 'admin/settings/seckit') {
@@ -431,6 +432,20 @@ EOT;
 }
 
 /**
+ * Sends From-Origin HTTP response header.
+ *
+ * Implementation is based on specification draft
+ * available at http://www.w3.org/TR/from-origin.
+ */
+function _seckit_from_origin($apply) {
+  if ($apply) {
+    $options = _seckit_get_options();
+    $value = $options['seckit_various']['from_origin_destination'];
+    drupal_set_header('From-Origin: ' . $value);
+  }
+}
+
+/**
  * Overrides styles for HTML selectors.
  *
  * Option is useful when you need to allow users to post <iframe>, <frame>,
@@ -501,11 +516,15 @@ function _seckit_get_options() {
     'hsts' => 0,
     'hsts_subdomains' => 0,
   );
+  $default['seckit_various'] = array(
+    'from_origin' => 0,
+  );
   // get variables
   $result['seckit_xss'] = variable_get('seckit_xss', $default['seckit_xss']);
   $result['seckit_csrf'] = variable_get('seckit_csrf', $default['seckit_csrf']);
   $result['seckit_clickjacking'] = variable_get('seckit_clickjacking', $default['seckit_clickjacking']);
   $result['seckit_ssl'] = variable_get('seckit_ssl', $default['seckit_ssl']);
+  $result['seckit_various'] = variable_get('seckit_various', $default['seckit_various']);
   // enable Content Security Policy (CSP)
   if (!isset($result['seckit_xss']['csp']['checkbox'])) {
     $result['seckit_xss']['csp']['checkbox'] = 0;
@@ -533,6 +552,10 @@ function _seckit_get_options() {
   // set HSTS max-age to 1000
   if (!isset($result['seckit_ssl']['hsts_max_age'])) {
     $result['seckit_ssl']['hsts_max_age'] = 1000;
+  }
+  // set From-Origin to same
+  if (!isset($result['seckit_various']['from_origin_destination'])) {
+    $result['seckit_various']['from_origin_destination'] = 'same';
   }
   return $result;
 }

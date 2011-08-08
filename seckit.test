@@ -250,8 +250,8 @@ class SecKitTestCase extends DrupalWebTestCase {
   }
 
   /**
-  * Tests disabled HTTP Strict Transport Security.
-  */
+   * Tests disabled HTTP Strict Transport Security.
+   */
   public function testDisabledHSTS() {
     $form['seckit_ssl[hsts]'] = FALSE;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
@@ -260,8 +260,8 @@ class SecKitTestCase extends DrupalWebTestCase {
   }
 
   /**
-  * Tests HTTP Strict Transport Security has all directives.
-  */
+   * Tests HTTP Strict Transport Security has all directives.
+   */
   public function testHSTSAllDirectves() {
     $form = array(
       'seckit_ssl[hsts]' => TRUE,
@@ -272,5 +272,28 @@ class SecKitTestCase extends DrupalWebTestCase {
     $expected = 'max-age=1000; includeSubDomains';
     $this->assertEqual($expected, $this->drupalGetHeader('Strict-Transport-Security'),
       t('HTTP Strict Transport Security has all the directives.'));
+  }
+
+  /**
+   * Tests disabled From-Origin.
+   */
+  public function testDisabledFromOrigin() {
+    $form['seckit_various[from_origin]'] = FALSE;
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertFalse($this->drupalGetHeader('From-Origin'),
+      t('From-Origin is disabled.'));
+  }
+
+  /**
+   * Tests enabled From-Origin.
+   */
+  public function testEnabledFromOrigin() {
+    $form = array(
+      'seckit_various[from_origin]' => TRUE,
+      'seckit_various[from_origin_destination]' => 'same',
+    );
+    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertEqual('same', $this->drupalGetHeader('From-Origin'),
+      t('From-Origin is enabled and set to same.'));
   }
 }
