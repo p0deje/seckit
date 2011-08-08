@@ -382,9 +382,14 @@ function seckit_admin_form_validate($form, &$form_state) {
  */
 function seckkit_admin_form_submit($form, &$form_state) {
   $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
+  $x_content_type_options_enable = $form_state['values']['seckit_xss']['x_content_type']['checkbox'];
   $file_system = file_default_scheme();
   if ($from_origin_enable && ($file_system == 'public')) {
     $msg = 'From-Origin HTTP response header will not be served for files because of public file system. It is recommended to enable private file system to ensure provided by From-Origin security.';
+    drupal_set_message($msg, 'warning');
+  }
+  if ($x_content_type_options_enable && ($file_system == 'public')) {
+    $msg = 'X-Content-Type-Options HTTP response header will not be served for files because of public file system. It is recommended to enable private file system to ensure provided by X-Content-Type-Options security.';
     drupal_set_message($msg, 'warning');
   }
 }
