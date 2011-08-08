@@ -64,6 +64,7 @@ function seckit_init() {
   _seckit_override_style($options['seckit_clickjacking']['override_style']);
   _seckit_hsts($options['seckit_ssl']['hsts']);
   _seckit_from_origin($options['seckit_various']['from_origin']);
+  _seckit_x_content_type_options($options['seckit_xss']['x_content_type']['checkbox']);
 
   // load jQuery listener
   if ($_GET['q'] == 'admin/config/system/seckit') {
@@ -211,6 +212,15 @@ function _seckit_x_xss($apply) {
     case SECKIT_X_XSS_DISABLE:
     default: //do nothing
       break;
+  }
+}
+
+/**
+ * Sends X-Content-Type-Options HTTP response header.
+ */
+function _seckit_x_content_type_options($apply) {
+  if ($apply) {
+    drupal_add_http_header('X-Content-Type-Options', 'nosniff');
   }
 }
 
@@ -429,6 +439,10 @@ function _seckit_get_options() {
   // set X-XSS-Protection header to 1; mode=block
   if (!isset($result['seckit_xss']['x_xss']['select'])) {
     $result['seckit_xss']['x_xss']['select'] = SECKIT_X_XSS_1;
+  }
+  // enable X-Content-Type-Options
+  if (!isset($result['seckit_xss']['x_content_type']['checkbox'])) {
+    $result['seckit_xss']['x_content_type']['checkbox'] = 1;
   }
   // enable Origin-based protection
   if (!isset($result['seckit_csrf']['origin'])) {
