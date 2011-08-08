@@ -329,14 +329,15 @@ function seckit_admin_form() {
     '#description' => t('Trustworthy destination. Possible variants are: !items', $args),
   );
 
-  // validation
+  // validation adn submit
   $form['#validate'][] = 'seckit_admin_form_validate';
+  $form['#submit'][] = 'seckkit_admin_form_submit';
 
   return system_settings_form($form);
 }
 
 /**
- * Validates HTTP Strict Transport Security.
+ * Validates form data.
  */
 function seckit_admin_form_validate($form, &$form_state) {
   // if From-Origin is enabled, it should be explicitly set
@@ -354,5 +355,17 @@ function seckit_admin_form_validate($form, &$form_state) {
   }
   if (preg_match('/[^0-9]/', $hsts_max_age)) {
     form_error($form['seckit_ssl']['hsts_max_age'], t('Only digits are allowed in HTTP Strict Transport Security Max-Age field.'));
+  }
+}
+
+/**
+ * Submits form.
+ */
+function seckkit_admin_form_submit($form, &$form_state) {
+  $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
+  $file_system = file_default_scheme();
+  if ($from_origin_enable && ($file_system == 'public')) {
+    $msg = 'From-Origin HTTP response header will not be served for files because of public file system. It is recommended to enable private file system to ensure provided by From-Origin security.';
+    drupal_set_message($msg, 'warning');
   }
 }
