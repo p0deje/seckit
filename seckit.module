@@ -430,6 +430,10 @@ function _seckit_get_options() {
   if (!isset($result['seckit_xss']['x_xss']['select'])) {
     $result['seckit_xss']['x_xss']['select'] = SECKIT_X_XSS_1;
   }
+  // enable X-Content-Type-Options
+  if (!isset($result['seckit_xss']['x_content_type']['checkbox'])) {
+    $result['seckit_xss']['x_content_type']['checkbox'] = 1;
+  }
   // enable Origin-based protection
   if (!isset($result['seckit_csrf']['origin'])) {
     $result['seckit_csrf']['origin'] = 1;
