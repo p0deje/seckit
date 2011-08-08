@@ -220,6 +220,23 @@ function seckit_admin_form() {
     $form['seckit_xss']['ie_mime']['button']['#value'] = t('Restrict uploading of .txt files');
   }
 
+  // fieldset for X-Content-Type-Options
+  $args['!link'] = l(t('MSDN article'), 'http://blogs.msdn.com/b/ie/archive/2010/10/26/mime-handling-changes-in-internet-explorer.aspx');
+  $form['seckit_xss']['x_content_type'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('X-Content-Type-Options'),
+    '#collapsible' => TRUE,
+    '#tree' => TRUE,
+    '#description' => t('X-Content-Type-Options HTTP response header prevents browser from upsniffing content and serving files with inappropriate MIME type. More information is available at !link.', $args),
+  );
+  // enable/disable X-Content-Type-Options
+  $form['seckit_xss']['x_content_type']['checkbox'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send HTTP response header'),
+    '#default_value' => $options['seckit_xss']['x_content_type']['checkbox'],
+    '#description' => t('Enable X-Content-Type-Options: nosniff HTTP response header.'),
+  );
+
   // main fieldset for CSRF
   $form['seckit_csrf'] = array(
     '#type' => 'fieldset',
@@ -396,9 +413,14 @@ function seckit_admin_form_validate($form, &$form_state) {
  */
 function seckkit_admin_form_submit($form, &$form_state) {
   $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
+  $x_content_type_options_enable = $form_state['values']['seckit_xss']['x_content_type']['checkbox'];
   $file_system = variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC);
   if ($from_origin_enable && ($file_system == FILE_DOWNLOADS_PUBLIC)) {
     $msg = 'From-Origin HTTP response header will not be served for files because of public file system. It is recommended to enable private file system to ensure provided by From-Origin security.';
+    drupal_set_message($msg, 'warning');
+  }
+  if ($x_content_type_options_enable && ($file_system == FILE_DOWNLOADS_PUBLIC)) {
+    $msg = 'X-Content-Type-Options HTTP response header will not be served for files because of public file system. It is recommended to enable private file system to ensure provided by X-Content-Type-Options security.';
     drupal_set_message($msg, 'warning');
   }
 }
