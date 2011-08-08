@@ -1,3 +1,10 @@
+SecKit 1.2
+-------------
+#1242628: Implemented X-Content-Type-Options HTTP response header
+#1227544: Implemented From-Origin HTTP response header
+#1241224: When CSP policy-uri is filled, all directives greyes out
+#1241888: CSP default-src is no longer required
+
 SecKit 1.1
 -------------
 #1124380: Updated CSP to the new specification
