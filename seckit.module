@@ -215,6 +215,15 @@ function _seckit_x_xss($apply) {
 }
 
 /**
+ * Sends X-Content-Type-Options HTTP response header.
+ */
+function _seckit_x_content_type_options($apply) {
+  if ($apply) {
+    drupal_add_http_header('X-Content-Type-Options', 'nosniff');
+  }
+}
+
+/**
  * Aborts HTTP request upon invalid Origin HTTP header.
  *
  * Origin HTTP request header contains hostname of the request source.
