@@ -346,14 +346,14 @@ function seckit_admin_form_validate($form, &$form_state) {
   $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
   $from_origin_destination = $form_state['values']['seckit_various']['from_origin_destination'];
   if (($from_origin_enable == 1) && (!$from_origin_destination)) {
-    form_error($form['seckit_various']['from_origin_destination'], t("You have to set up trustworthy destination for From-Origin HTTP response header. Default is same."));
+    form_error($form['seckit_various']['from_origin_destination'], t('You have to set up trustworthy destination for From-Origin HTTP response header. Default is same.'));
   }
   // if HTTP Strict Transport Security is enabled, max-age must be specified.
   // HSTS max-age should only contain digits.
   $hsts_enable = $form_state['values']['seckit_ssl']['hsts'];
   $hsts_max_age = $form_state['values']['seckit_ssl']['hsts_max_age'];
   if (($hsts_enable == 1) && (!$hsts_max_age)) {
-    form_error($form['seckit_ssl']['hsts_max_age'], t("You have to set up Max-Age value for HTTP Strict Transport Security. Default is 1000."));
+    form_error($form['seckit_ssl']['hsts_max_age'], t('You have to set up Max-Age value for HTTP Strict Transport Security. Default is 1000.'));
   }
   if (preg_match('/[^0-9]/', $hsts_max_age)) {
     form_error($form['seckit_ssl']['hsts_max_age'], t('Only digits are allowed in HTTP Strict Transport Security Max-Age field.'));
