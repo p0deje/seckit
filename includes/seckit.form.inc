@@ -331,7 +331,7 @@ function seckit_admin_form() {
     '#description' => t('Trustworthy destination. Possible variants are: !items', $args),
   );
 
-  // validation adn submit
+  // validation and submit
   $form['#validate'][] = 'seckit_admin_form_validate';
   $form['#submit'][] = 'seckkit_admin_form_submit';
 
