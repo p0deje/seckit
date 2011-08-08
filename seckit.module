@@ -59,12 +59,12 @@ function seckit_init() {
   _seckit_origin($options['seckit_csrf']['origin']);
   _seckit_csp($options['seckit_xss']['csp']['checkbox']);
   _seckit_x_xss($options['seckit_xss']['x_xss']['select']);
+  _seckit_x_content_type_options($options['seckit_xss']['x_content_type']['checkbox']);
   _seckit_x_frame($options['seckit_clickjacking']['x_frame']);
   _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
   _seckit_override_style($options['seckit_clickjacking']['override_style']);
   _seckit_hsts($options['seckit_ssl']['hsts']);
   _seckit_from_origin($options['seckit_various']['from_origin']);
-  _seckit_x_content_type_options($options['seckit_xss']['x_content_type']['checkbox']);
 
   // load jQuery listener
   if ($_GET['q'] == 'admin/config/system/seckit') {
