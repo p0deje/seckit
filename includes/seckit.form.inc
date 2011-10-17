@@ -127,12 +127,12 @@ function seckit_admin_form() {
     '#title' => 'font-src',
     '#description' => t('Specify trustworthy sources for @font-src CSS loads.'),
   );
-  // CSP xhr-src directive
-  $form['seckit_xss']['csp']['xhr-src'] = array(
+  // CSP connect-src directive
+  $form['seckit_xss']['csp']['connect-src'] = array(
     '#type' => 'textfield',
-    '#default_value' => $options['seckit_xss']['csp']['xhr-src'],
-    '#title' => 'xhr-src',
-    '#description' => t('Specify trustworthy sources for XmlHttpRequest connections.'),
+    '#default_value' => $options['seckit_xss']['csp']['connect-src'],
+    '#title' => 'connect-src',
+    '#description' => t('Specify trustworthy sources for XMLHttpRequest, WebSocket and EventSource connections.'),
   );
   // CSP frame-ancestors directive
   $form['seckit_xss']['csp']['frame-ancestors'] = array(
@@ -276,14 +276,12 @@ function seckit_admin_form() {
     '#description' => $description,
   );
 
-  // enable/disable styles override
-  $description = t('Enable this option only if you allow users to post &lt;iframe&gt;, &lt;frame&gt;, &lt;object&gt; or &lt;embed&gt; tags. Most Clickjacking vectors use transparent frames and this stylesheet overrides opacity of iframe, frame, object and embed HTML elements to make them be always shown and also prevents "last loaded - first focused" behavior (when last loaded frame is focused regardless its z-index). Please, note that this method is not 100% proof.');
-  $form['seckit_clickjacking']['override_style'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Override styles for frames'),
-    '#return_value' => 1,
-    '#default_value' => $options['seckit_clickjacking']['override_style'],
-    '#description' => $description,
+  // custom text for "disabled JavaScript" message
+  $form['seckit_clickjacking']['noscript_message'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom text for disabled JavaScript message'),
+    '#default_value' => $options['seckit_clickjacking']['noscript_message'],
+    '#description' => t('This message will be shown to user when JavaScript is disabled or unsupported in his browser. Default is "Sorry, you need to enable JavaScript to visit this website."'),
   );
 
   // main fieldset for SSL/TLS
@@ -374,6 +372,13 @@ function seckit_admin_form_validate($form, &$form_state) {
   }
   if (preg_match('/[^0-9]/', $hsts_max_age)) {
     form_error($form['seckit_ssl']['hsts_max_age'], t('Only digits are allowed in HTTP Strict Transport Security Max-Age field.'));
+  }
+  // if JS + CSS + Noscript Clickjacking protection is enabled,
+  // custom text for disabled JS must be specified
+  $js_css_noscript_enable = $form_state['values']['seckit_clickjacking']['js_css_noscript'];
+  $noscript_message = $form_state['values']['seckit_clickjacking']['noscript_message'];
+  if (($js_css_noscript_enable == 1) && (!$noscript_message)) {
+    form_error($form['seckit_clickjacking']['noscript_message'], t('You have to set up Custom text for disabled JavaScript message when JS + CSS + Noscript protection is enabled.'));
   }
 }
 

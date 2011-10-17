@@ -3,6 +3,7 @@ Drupal.behaviors.seckit = {
     seckit_listener_hsts(context);
     seckit_listener_csp(context);
     seckit_listener_origin(context);
+    seckit_listener_clickjacking(context);
     seckit_listener_various(context);
     (function ($) {
       $('#edit-seckit-ssl-hsts', context).click(function () {
@@ -16,6 +17,9 @@ Drupal.behaviors.seckit = {
       });
       $('#edit-seckit-csrf-origin', context).click(function () {
         seckit_listener_origin(context)
+      });
+      $('#edit-seckit-clickjacking-js-css-noscript', context).click(function () {
+        seckit_listener_clickjacking(context);
       });
       $('#edit-seckit-various-from-origin', context).click(function () {
         seckit_listener_various(context)
@@ -82,7 +86,7 @@ function _seckit_csp_remove_attributes(context) {
     $('#edit-seckit-xss-csp-style-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-frame-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-font-src', context).removeAttr('disabled');
-    $('#edit-seckit-xss-csp-xhr-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-connect-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-frame-ancestors', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-report-uri', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-options', context).removeAttr('disabled');
@@ -102,7 +106,7 @@ function _seckit_csp_add_attributes(context) {
     $('#edit-seckit-xss-csp-style-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-frame-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-font-src', context).attr('disabled', 'disabled');
-    $('#edit-seckit-xss-csp-xhr-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-connect-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-frame-ancestors', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-report-uri', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-options', context).attr('disabled', 'disabled');
@@ -120,6 +124,21 @@ function seckit_listener_origin(context) {
     }
     else {
       $('#edit-seckit-csrf-origin-whitelist', context).attr('disabled', 'disabled');
+    }
+  })(jQuery);
+}
+
+/**
+ * Adds/removes attributes for input fields in
+ * Clickjacking fieldset.
+ */
+function seckit_listener_clickjacking(context) {
+  (function ($) {
+    if ($('#edit-seckit-clickjacking-js-css-noscript').is(':checked')) {
+      $('#edit-seckit-clickjacking-noscript-message', context).removeAttr('disabled');
+    }
+    else {
+      $('#edit-seckit-clickjacking-noscript-message', context).attr('disabled', 'disabled');
     }
   })(jQuery);
 }
