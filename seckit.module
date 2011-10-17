@@ -309,6 +309,8 @@ function _seckit_js_css_noscript($apply) {
  * @return string
  */
 function _seckit_get_js_css_noscript_code() {
+  $options = _seckit_get_options();
+  $message = filter_xss($options['seckit_clickjacking']['noscript_message']);
   $path = base_path() . drupal_get_path('module', 'seckit');
   return <<< EOT
       // close script tag for SecKit protection
@@ -320,7 +322,7 @@ function _seckit_get_js_css_noscript_code() {
       <noscript>
       <link type="text/css" rel="stylesheet" id="seckit-clickjacking-noscript-tag" media="all" href="$path/css/seckit.noscript_tag.css" />
       <div id="seckit-noscript-tag">
-        <h1>Sorry, you need to enable JavaScript to visit this website.</h1>
+        <h1>$message</h1>
       </div>
       </noscript>
       <script type="text/javascript">
@@ -435,6 +437,10 @@ function _seckit_get_options() {
   // set X-Frame-Options header to SameOrigin
   if (!isset($result['seckit_clickjacking']['x_frame'])) {
     $result['seckit_clickjacking']['x_frame'] = SECKIT_X_FRAME_SAMEORIGIN;
+  }
+  // set Custom text for disabled JavaScript message
+  if (!isset($result['seckit_clickjacking']['noscript_message'])) {
+    $result['seckit_clickjacking']['noscript_message'] = t('Sorry, you need to enable JavaScript to visit this website.');
   }
   // set HSTS max-age to 1000
   if (!isset($result['seckit_ssl']['hsts_max_age'])) {
