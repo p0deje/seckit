@@ -276,16 +276,6 @@ function seckit_admin_form() {
     '#description' => $description,
   );
 
-  // enable/disable styles override
-  $description = t('Enable this option only if you allow users to post &lt;iframe&gt;, &lt;frame&gt;, &lt;object&gt; or &lt;embed&gt; tags. Most Clickjacking vectors use transparent frames and this stylesheet overrides opacity of iframe, frame, object and embed HTML elements to make them be always shown and also prevents "last loaded - first focused" behavior (when last loaded frame is focused regardless its z-index). Please, note that this method is not 100% proof.');
-  $form['seckit_clickjacking']['override_style'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Override styles for frames'),
-    '#return_value' => 1,
-    '#default_value' => $options['seckit_clickjacking']['override_style'],
-    '#description' => $description,
-  );
-
   // main fieldset for SSL/TLS
   $form['seckit_ssl'] = array(
     '#type' => 'fieldset',
