@@ -37,6 +37,8 @@ function seckit_update_7101() {
 
 /**
  * Implements hook_update_N().
+ *
+ * @see http://drupal.org/node/1243032
  */
 function seckit_update_7102() {
   // removes override style variable
