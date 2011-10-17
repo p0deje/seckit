@@ -127,12 +127,12 @@ function seckit_admin_form() {
     '#title' => 'font-src',
     '#description' => t('Specify trustworthy sources for @font-src CSS loads.'),
   );
-  // CSP xhr-src directive
-  $form['seckit_xss']['csp']['xhr-src'] = array(
+  // CSP connect-src directive
+  $form['seckit_xss']['csp']['connect-src'] = array(
     '#type' => 'textfield',
-    '#default_value' => $options['seckit_xss']['csp']['xhr-src'],
-    '#title' => 'xhr-src',
-    '#description' => t('Specify trustworthy sources for XmlHttpRequest connections.'),
+    '#default_value' => $options['seckit_xss']['csp']['connect-src'],
+    '#title' => 'connect-src',
+    '#description' => t('Specify trustworthy sources for XMLHttpRequest, WebSocket and EventSource connections.'),
   );
   // CSP frame-ancestors directive
   $form['seckit_xss']['csp']['frame-ancestors'] = array(

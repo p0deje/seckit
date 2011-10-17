@@ -96,7 +96,7 @@ function _seckit_csp($apply) {
     $csp_style_src = $options['style-src'];
     $csp_frame_src = $options['frame-src'];
     $csp_font_src = $options['font-src'];
-    $csp_xhr_src = $options['xhr-src'];
+    $csp_connect_src = $options['connect-src'];
     $csp_frame_ancestors = $options['frame-ancestors'];
     $csp_report_uri = $options['report-uri'];
     $csp_policy_uri = $options['policy-uri'];
@@ -135,8 +135,8 @@ function _seckit_csp($apply) {
       if ($csp_font_src) {
         $directives[] = 'font-src ' . $csp_font_src;
       }
-      if ($csp_xhr_src) {
-        $directives[] = 'xhr-src ' . $csp_xhr_src;
+      if ($csp_connect_src) {
+        $directives[] = 'connect-src ' . $csp_connect_src;
       }
       if ($csp_frame_ancestors) {
         $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
@@ -383,7 +383,7 @@ function _seckit_get_options() {
     'style-src' => '',
     'frame-src' => '',
     'font-src' => '',
-    'xhr-src' => '',
+    'connect-src' => '',
     'frame-ancestors' => '',
     'policy-uri' => '',
     'options' => '',

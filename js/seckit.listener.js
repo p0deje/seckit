@@ -82,7 +82,7 @@ function _seckit_csp_remove_attributes(context) {
     $('#edit-seckit-xss-csp-style-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-frame-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-font-src', context).removeAttr('disabled');
-    $('#edit-seckit-xss-csp-xhr-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-connect-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-frame-ancestors', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-report-uri', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-options', context).removeAttr('disabled');
@@ -102,7 +102,7 @@ function _seckit_csp_add_attributes(context) {
     $('#edit-seckit-xss-csp-style-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-frame-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-font-src', context).attr('disabled', 'disabled');
-    $('#edit-seckit-xss-csp-xhr-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-connect-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-frame-ancestors', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-report-uri', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-options', context).attr('disabled', 'disabled');
