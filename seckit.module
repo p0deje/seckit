@@ -68,7 +68,6 @@ function seckit_init() {
   _seckit_x_content_type_options($options['seckit_xss']['x_content_type']['checkbox']);
   _seckit_x_frame($options['seckit_clickjacking']['x_frame']);
   _seckit_js_css_noscript($options['seckit_clickjacking']['js_css_noscript']);
-  _seckit_override_style($options['seckit_clickjacking']['override_style']);
   _seckit_hsts($options['seckit_ssl']['hsts']);
   _seckit_from_origin($options['seckit_various']['from_origin']);
 
@@ -103,7 +102,7 @@ function _seckit_csp($apply) {
     $csp_style_src = $options['style-src'];
     $csp_frame_src = $options['frame-src'];
     $csp_font_src = $options['font-src'];
-    $csp_xhr_src = $options['xhr-src'];
+    $csp_connect_src = $options['connect-src'];
     $csp_frame_ancestors = $options['frame-ancestors'];
     $csp_report_uri = $options['report-uri'];
     $csp_policy_uri = $options['policy-uri'];
@@ -142,8 +141,8 @@ function _seckit_csp($apply) {
       if ($csp_font_src) {
         $directives[] = 'font-src ' . $csp_font_src;
       }
-      if ($csp_xhr_src) {
-        $directives[] = 'xhr-src ' . $csp_xhr_src;
+      if ($csp_connect_src) {
+        $directives[] = 'connect-src ' . $csp_connect_src;
       }
       if ($csp_frame_ancestors) {
         $directives[] = 'frame-ancestors ' . $csp_frame_ancestors;
@@ -421,6 +420,8 @@ function _seckit_js_css_noscript($apply) {
  * @return string
  */
 function _seckit_get_js_css_noscript_code() {
+  $options = _seckit_get_options();
+  $message = filter_xss($options['seckit_clickjacking']['noscript_message']);
   $path = base_path() . drupal_get_path('module', 'seckit');
   return <<< EOT
       // close script tag for SecKit protection
@@ -432,7 +433,7 @@ function _seckit_get_js_css_noscript_code() {
       <noscript>
       <link type="text/css" rel="stylesheet" id="seckit-clickjacking-noscript-tag" media="all" href="$path/css/seckit.noscript_tag.css" />
       <div id="seckit-noscript-tag">
-        <h1>Sorry, you need to enable JavaScript to visit this website.</h1>
+        <h1>$message</h1>
       </div>
       </noscript>
       <script type="text/javascript">
@@ -452,20 +453,6 @@ function _seckit_from_origin($apply) {
     $options = _seckit_get_options();
     $value = $options['seckit_various']['from_origin_destination'];
     drupal_set_header('From-Origin: ' . $value);
-  }
-}
-
-/**
- * Overrides styles for HTML selectors.
- *
- * Option is useful when you need to allow users to post <iframe>, <frame>,
- * <object> or <embed> tags. Special CSS overrides their styles.
- */
-function _seckit_override_style($apply) {
-  if ($apply) {
-    $path = drupal_get_path('module', 'seckit');
-    $css_file = $path . '/css/seckit.override_style.css';
-    drupal_add_css($css_file);
   }
 }
 
@@ -509,7 +496,7 @@ function _seckit_get_options() {
     'style-src' => '',
     'frame-src' => '',
     'font-src' => '',
-    'xhr-src' => '',
+    'connect-src' => '',
     'frame-ancestors' => '',
     'policy-uri' => '',
     'options' => '',
@@ -520,7 +507,6 @@ function _seckit_get_options() {
   );
   $default['seckit_clickjacking'] = array(
     'js_css_noscript' => 0,
-    'override_style' => 0,
   );
   $default['seckit_ssl'] = array(
     'hsts' => 0,
@@ -562,6 +548,10 @@ function _seckit_get_options() {
   // set X-Frame-Options header to SameOrigin
   if (!isset($result['seckit_clickjacking']['x_frame'])) {
     $result['seckit_clickjacking']['x_frame'] = SECKIT_X_FRAME_SAMEORIGIN;
+  }
+  // set Custom text for disabled JavaScript message
+  if (!isset($result['seckit_clickjacking']['noscript_message'])) {
+    $result['seckit_clickjacking']['noscript_message'] = t('Sorry, you need to enable JavaScript to visit this website.');
   }
   // set HSTS max-age to 1000
   if (!isset($result['seckit_ssl']['hsts_max_age'])) {
