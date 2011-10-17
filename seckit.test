@@ -243,6 +243,7 @@ class SecKitTestCase extends DrupalWebTestCase {
    */
   public function testJSCSSNoscript() {
     $form['seckit_clickjacking[js_css_noscript]'] = TRUE;
+    $form['seckit_clickjacking[noscript_message]'] = 'Sorry, your JavaScript is disabled.';
     $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
     $code = _seckit_get_js_css_noscript_code();
     $this->assertRaw($code,

@@ -276,6 +276,14 @@ function seckit_admin_form() {
     '#description' => $description,
   );
 
+  // custom text for "disabled JavaScript" message
+  $form['seckit_clickjacking']['noscript_message'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom text for disabled JavaScript message'),
+    '#default_value' => $options['seckit_clickjacking']['noscript_message'],
+    '#description' => t('This message will be shown to user when JavaScript is disabled or unsupported in his browser. Default is "Sorry, you need to enable JavaScript to visit this website."'),
+  );
+
   // main fieldset for SSL/TLS
   $form['seckit_ssl'] = array(
     '#type' => 'fieldset',
@@ -364,6 +372,13 @@ function seckit_admin_form_validate($form, &$form_state) {
   }
   if (preg_match('/[^0-9]/', $hsts_max_age)) {
     form_error($form['seckit_ssl']['hsts_max_age'], t('Only digits are allowed in HTTP Strict Transport Security Max-Age field.'));
+  }
+  // if JS + CSS + Noscript Clickjacking protection is enabled,
+  // custom text for disabled JS must be specified
+  $js_css_noscript_enable = $form_state['values']['seckit_clickjacking']['js_css_noscript'];
+  $noscript_message = $form_state['values']['seckit_clickjacking']['noscript_message'];
+  if (($js_css_noscript_enable == 1) && (!$noscript_message)) {
+    form_error($form['seckit_clickjacking']['noscript_message'], t('You have to set up Custom text for disabled JavaScript message when JS + CSS + Noscript protection is enabled.'));
   }
 }
 
