@@ -62,13 +62,13 @@ class SecKitTestCase extends DrupalWebTestCase {
       'seckit_xss[csp][style-src]' => '*',
       'seckit_xss[csp][frame-src]' => '*',
       'seckit_xss[csp][font-src]' => '*',
-      'seckit_xss[csp][xhr-src]' => '*',
+      'seckit_xss[csp][connect-src]' => '*',
       'seckit_xss[csp][frame-ancestors]' => '*',
       'seckit_xss[csp][report-uri]' => 'admin/settings/seckit/csp-report',
       'seckit_xss[csp][options]' => 'some-option',
     );
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $expected = 'default-src *; script-src *; object-src *; img-src *; media-src *; style-src *; frame-src *; font-src *; xhr-src *; frame-ancestors *; report-uri admin/settings/seckit/csp-report; options some-option';
+    $expected = 'default-src *; script-src *; object-src *; img-src *; media-src *; style-src *; frame-src *; font-src *; connect-src *; frame-ancestors *; report-uri admin/settings/seckit/csp-report; options some-option';
     $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
       t('X-Content-Security-Policy has all the directves (Mozilla).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-WebKit-CSP'),
@@ -90,7 +90,7 @@ class SecKitTestCase extends DrupalWebTestCase {
       'seckit_xss[csp][style-src]' => '*',
       'seckit_xss[csp][frame-src]' => '*',
       'seckit_xss[csp][font-src]' => '*',
-      'seckit_xss[csp][xhr-src]' => '*',
+      'seckit_xss[csp][connect-src]' => '*',
       'seckit_xss[csp][frame-ancestors]' => '*',
       'seckit_xss[csp][report-uri]' => 'admin/settings/seckit/csp-report',
       'seckit_xss[csp][options]' => 'some-option',
@@ -244,22 +244,11 @@ class SecKitTestCase extends DrupalWebTestCase {
    */
   public function testJSCSSNoscript() {
     $form['seckit_clickjacking[js_css_noscript]'] = TRUE;
+    $form['seckit_clickjacking[noscript_message]'] = 'Sorry, your JavaScript is disabled.';
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $code = _seckit_get_js_css_noscript_code();
     $this->assertRaw($code,
       t('JavaScript + CSS + Noscript protection is loaded.'));
-  }
-
-  /**
-   * Tests style override for frames, objects and embeds.
-   */
-  public function testStyleOverride() {
-    $form['seckit_clickjacking[override_style]'] = TRUE;
-    $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $path = drupal_get_path('module', 'seckit');
-    $code = '<link type="text/css" rel="stylesheet" media="all" href="/' . $path . '/css/seckit.override_style.css';
-    $this->assertRaw($code,
-      t('Style override CSS is loaded.'));
   }
 
   /**
