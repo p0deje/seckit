@@ -67,3 +67,21 @@ function seckit_update_7103() {
   variable_del('seckit_xss');
   variable_set('seckit_xss', $options);
 }
+
+
+/**
+ * Removes Content-Security-Policy "frame-ancestors" directive and "options".
+ *
+ * They are removed from stable version of specification http://www.w3.org/TR/CSP.
+ */
+function seckit_update_7104() {
+  // update CSP directives
+  $options = variable_get('seckit_xss');
+  // frame-ancestors is removed
+  unset($options['csp']['frame-ancestors']);
+  // options is removed
+  unset($options['csp']['options']);
+  // delete and set new version of variable
+  variable_del('seckit_xss');
+  variable_set('seckit_xss', $options);
+}
