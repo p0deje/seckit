@@ -22,7 +22,7 @@ Drupal.behaviors.seckit = function (context) {
   $('#edit-seckit-various-from-origin', context).click(function () {
     seckit_listener_various(context);
   });
-}
+};
 
 /**
  * Adds/removes attributes for input fields in
