@@ -7,22 +7,22 @@ Drupal.behaviors.seckit = {
     seckit_listener_various(context);
     (function ($) {
       $('#edit-seckit-ssl-hsts', context).click(function () {
-        seckit_listener_hsts(context)
+        seckit_listener_hsts(context);
       });
       $('#edit-seckit-xss-csp-checkbox', context).click(function () {
-        seckit_listener_csp(context)
+        seckit_listener_csp(context);
       });
       $('#edit-seckit-xss-csp-policy-uri', context).blur(function () {
-        seckit_listener_csp(context)
+        seckit_listener_csp(context);
       });
       $('#edit-seckit-csrf-origin', context).click(function () {
-        seckit_listener_origin(context)
+        seckit_listener_origin(context);
       });
       $('#edit-seckit-clickjacking-js-css-noscript', context).click(function () {
         seckit_listener_clickjacking(context);
       });
       $('#edit-seckit-various-from-origin', context).click(function () {
-        seckit_listener_various(context)
+        seckit_listener_various(context);
       });
     })(jQuery);
   }
@@ -59,7 +59,7 @@ function seckit_listener_csp(context) {
       $('#edit-seckit-xss-csp-report-only', context).removeAttr('disabled');
       $('#edit-seckit-xss-csp-policy-uri', context).removeAttr('disabled');
       if (!policy_uri_status) {
-        _seckit_csp_add_attributes(context)
+        _seckit_csp_add_attributes(context);
       }
       else {
         _seckit_csp_remove_attributes(context);
@@ -81,15 +81,13 @@ function _seckit_csp_remove_attributes(context) {
     $('#edit-seckit-xss-csp-default-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-script-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-object-src', context).removeAttr('disabled');
+    $('#edit-seckit-xss-csp-style-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-img-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-media-src', context).removeAttr('disabled');
-    $('#edit-seckit-xss-csp-style-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-frame-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-font-src', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-connect-src', context).removeAttr('disabled');
-    $('#edit-seckit-xss-csp-frame-ancestors', context).removeAttr('disabled');
     $('#edit-seckit-xss-csp-report-uri', context).removeAttr('disabled');
-    $('#edit-seckit-xss-csp-options', context).removeAttr('disabled');
   })(jQuery);
 }
 
@@ -101,15 +99,13 @@ function _seckit_csp_add_attributes(context) {
     $('#edit-seckit-xss-csp-default-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-script-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-object-src', context).attr('disabled', 'disabled');
+    $('#edit-seckit-xss-csp-style-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-img-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-media-src', context).attr('disabled', 'disabled');
-    $('#edit-seckit-xss-csp-style-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-frame-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-font-src', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-connect-src', context).attr('disabled', 'disabled');
-    $('#edit-seckit-xss-csp-frame-ancestors', context).attr('disabled', 'disabled');
     $('#edit-seckit-xss-csp-report-uri', context).attr('disabled', 'disabled');
-    $('#edit-seckit-xss-csp-options', context).attr('disabled', 'disabled');
   })(jQuery);
 }
 

@@ -202,7 +202,7 @@ function _seckit_x_xss($apply) {
       break;
 
     case SECKIT_X_XSS_DISABLE:
-    default: //do nothing
+      default: //do nothing
       break;
   }
 }
@@ -278,7 +278,7 @@ function _seckit_x_frame($apply) {
       break;
 
     case SECKIT_X_FRAME_DISABLE:
-    default: // do nothing;
+      default: // do nothing;
       break;
   }
 }
@@ -370,18 +370,16 @@ function _seckit_hsts($apply) {
 function _seckit_get_options() {
   // set default options
   $default['seckit_xss']['csp'] = array(
-    'report-only'     => 0,
-    'script-src'      => '',
-    'object-src'      => '',
-    'img-src'         => '',
-    'media-src'       => '',
-    'style-src'       => '',
-    'frame-src'       => '',
-    'font-src'        => '',
-    'connect-src'     => '',
-    'frame-ancestors' => '',
-    'policy-uri'      => '',
-    'options'         => '',
+    'report-only' => 0,
+    'script-src'  => '',
+    'object-src'  => '',
+    'img-src'     => '',
+    'media-src'   => '',
+    'style-src'   => '',
+    'frame-src'   => '',
+    'font-src'    => '',
+    'connect-src' => '',
+    'policy-uri'  => '',
   );
   $default['seckit_csrf'] = array(
     'origin'           => 1,
