@@ -121,7 +121,7 @@ function _seckit_csp($apply) {
         $directives[] = "style-src $csp_style_src";
       }
       if ($csp_img_src) {
-        $directives[] = "'img-src $csp_img_src";
+        $directives[] = " img-src $csp_img_src";
       }
       if ($csp_media_src) {
         $directives[] = "media-src $csp_media_src";

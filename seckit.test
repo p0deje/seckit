@@ -70,7 +70,7 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
     $expected = 'default-src *; script-src *; object-src *; style-src *; img-src *; media-src *; frame-src *; font-src *; connect-src *; report-uri admin/config/system/seckit/csp-report';
     $this->assertEqual($expected, $this->drupalGetHeader('Content-Security-Policy'),
-      t('X-Content-Security-Policy has all the directves (Official).'));
+      t('Content-Security-Policy has all the directves (Official).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
       t('X-Content-Security-Policy has all the directves (Mozilla and IE10).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-WebKit-CSP'),
@@ -99,7 +99,7 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
     $expected = 'policy-uri http://mysite.com/csp.xml';
     $this->assertEqual($expected, $this->drupalGetHeader('Content-Security-Policy'),
-      t('X-Content-Security-Policy has only policy-uri (Official).'));
+      t('Content-Security-Policy has only policy-uri (Official).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
       t('X-Content-Security-Policy has only policy-uri (Mozilla and IE10).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-WebKit-CSP'),
