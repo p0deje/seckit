@@ -332,7 +332,7 @@ function seckit_admin_form() {
 
   // validation and submit
   $form['#validate'][] = 'seckit_admin_form_validate';
-  $form['#submit'][] = 'seckkit_admin_form_submit';
+  $form['#submit'][] = 'seckit_admin_form_submit';
 
   return system_settings_form($form);
 }
@@ -369,7 +369,7 @@ function seckit_admin_form_validate($form, &$form_state) {
 /**
  * Submits form.
  */
-function seckkit_admin_form_submit($form, &$form_state) {
+function seckit_admin_form_submit($form, &$form_state) {
   $from_origin_enable = $form_state['values']['seckit_various']['from_origin'];
   $x_content_type_options_enable = $form_state['values']['seckit_xss']['x_content_type']['checkbox'];
   $file_system = file_default_scheme();
