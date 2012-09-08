@@ -1,6 +1,7 @@
 /**
- * If site is not being framed, start commenting out seckit.no_body.css.
+ * If site is not being framed or being framed within the same host,
+ * start commenting out seckit.no_body.css.
  */
-if (top === self) {
+if (top === self || top.location.hostname === self.location.hostname) {
   document.write('<!--');
 }

@@ -42,10 +42,12 @@ class SecKitTestCase extends DrupalWebTestCase {
   public function testDisabledCSP() {
     $form['seckit_xss[csp][checkbox]'] = FALSE;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertFalse($this->drupalGetHeader('Content-Security-Policy'),
+      t('Content Security Policy is disabled (Official).'));
     $this->assertFalse($this->drupalGetHeader('X-Content-Security-Policy'),
-      t('Content Security Policy is disabled (Mozilla).'));
+      t('Content Security Policy is disabled (Mozilla and IE10).'));
     $this->assertFalse($this->drupalGetHeader('X-WebKit-CSP'),
-      t('Content Security Policy is disabled (Chrome).'));
+      t('Content Security Policy is disabled (Chrome and Safari).'));
   }
 
   /**
@@ -53,26 +55,26 @@ class SecKitTestCase extends DrupalWebTestCase {
    */
   public function testCSPHasAllDirectives() {
     $form = array(
-      'seckit_xss[csp][checkbox]' => TRUE,
+      'seckit_xss[csp][checkbox]'    => TRUE,
       'seckit_xss[csp][default-src]' => '*',
-      'seckit_xss[csp][script-src]' => '*',
-      'seckit_xss[csp][object-src]' => '*',
-      'seckit_xss[csp][img-src]' => '*',
-      'seckit_xss[csp][media-src]' => '*',
-      'seckit_xss[csp][style-src]' => '*',
-      'seckit_xss[csp][frame-src]' => '*',
-      'seckit_xss[csp][font-src]' => '*',
+      'seckit_xss[csp][script-src]'  => '*',
+      'seckit_xss[csp][object-src]'  => '*',
+      'seckit_xss[csp][style-src]'   => '*',
+      'seckit_xss[csp][img-src]'     => '*',
+      'seckit_xss[csp][media-src]'   => '*',
+      'seckit_xss[csp][frame-src]'   => '*',
+      'seckit_xss[csp][font-src]'    => '*',
       'seckit_xss[csp][connect-src]' => '*',
-      'seckit_xss[csp][frame-ancestors]' => '*',
-      'seckit_xss[csp][report-uri]' => 'admin/settings/seckit/csp-report',
-      'seckit_xss[csp][options]' => 'some-option',
+      'seckit_xss[csp][report-uri]'  => 'admin/settings/seckit/csp-report',
     );
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
-    $expected = 'default-src *; script-src *; object-src *; img-src *; media-src *; style-src *; frame-src *; font-src *; connect-src *; frame-ancestors *; report-uri admin/settings/seckit/csp-report; options some-option';
+    $expected = 'default-src *; script-src *; object-src *; style-src *; img-src *; media-src *; frame-src *; font-src *; connect-src *; report-uri admin/settings/seckit/csp-report';
+    $this->assertEqual($expected, $this->drupalGetHeader('Content-Security-Policy'),
+      t('Content-Security-Policy has all the directves (Official).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
-      t('X-Content-Security-Policy has all the directves (Mozilla).'));
+      t('X-Content-Security-Policy has all the directves (Mozilla and IE10).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-WebKit-CSP'),
-      t('X-WebKit-CSP has all the directves (Chrome).'));
+      t('X-WebKit-CSP has all the directves (Chrome and Safari).'));
   }
 
   /**
@@ -81,27 +83,27 @@ class SecKitTestCase extends DrupalWebTestCase {
    */
   public function testCSPPolicyUriDirectiveOnly() {
     $form = array(
-      'seckit_xss[csp][checkbox]' => TRUE,
+      'seckit_xss[csp][checkbox]'    => TRUE,
       'seckit_xss[csp][default-src]' => '*',
-      'seckit_xss[csp][script-src]' => '*',
-      'seckit_xss[csp][object-src]' => '*',
-      'seckit_xss[csp][img-src]' => '*',
-      'seckit_xss[csp][media-src]' => '*',
-      'seckit_xss[csp][style-src]' => '*',
-      'seckit_xss[csp][frame-src]' => '*',
-      'seckit_xss[csp][font-src]' => '*',
+      'seckit_xss[csp][script-src]'  => '*',
+      'seckit_xss[csp][object-src]'  => '*',
+      'seckit_xss[csp][img-src]'     => '*',
+      'seckit_xss[csp][media-src]'   => '*',
+      'seckit_xss[csp][style-src]'   => '*',
+      'seckit_xss[csp][frame-src]'   => '*',
+      'seckit_xss[csp][font-src]'    => '*',
       'seckit_xss[csp][connect-src]' => '*',
-      'seckit_xss[csp][frame-ancestors]' => '*',
-      'seckit_xss[csp][report-uri]' => 'admin/settings/seckit/csp-report',
-      'seckit_xss[csp][options]' => 'some-option',
-      'seckit_xss[csp][policy-uri]' => 'admin/settings/seckit/csp-policy',
+      'seckit_xss[csp][report-uri]'  => 'admin/settings/seckit/csp-report',
+      'seckit_xss[csp][policy-uri]'  => 'admin/settings/seckit/csp-policy',
     );
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
     $expected = 'policy-uri admin/settings/seckit/csp-policy';
+    $this->assertEqual($expected, $this->drupalGetHeader('Content-Security-Policy'),
+      t('Content-Security-Policy has only policy-uri directive (Official).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
-      t('X-Content-Security-Policy has only policy-uri directive (Mozilla).'));
+      t('X-Content-Security-Policy has only policy-uri directive (Mozilla and IE10).'));
     $this->assertEqual($expected, $this->drupalGetHeader('X-WebKit-CSP'),
-      t('X-WebKit-CSP has only policy-uri directive (Chrome).'));
+      t('X-WebKit-CSP has only policy-uri directive (Chrome and Safari).'));
   }
 
   /**
@@ -111,10 +113,12 @@ class SecKitTestCase extends DrupalWebTestCase {
     $form['seckit_xss[csp][checkbox]'] = TRUE;
     $form['seckit_xss[csp][report-only]'] = TRUE;
     $this->drupalPost('admin/settings/seckit', $form, t('Save configuration'));
+    $this->assertTrue($this->drupalGetHeader('Content-Security-Policy-Report-Only'),
+      t('Content Security Policy is in report-only mode (Official).'));
     $this->assertTrue($this->drupalGetHeader('X-Content-Security-Policy-Report-Only'),
-      t('Content Security Policy is in report-only mode (Mozilla).'));
+      t('Content Security Policy is in report-only mode (Mozilla and IE10).'));
     $this->assertTrue($this->drupalGetHeader('X-WebKit-CSP-Report-Only'),
-      t('Content Security Policy is in report-only mode (Chrome).'));
+      t('Content Security Policy is in report-only mode (Chrome and Safari).'));
   }
 
   /**
