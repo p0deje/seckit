@@ -1,8 +1,17 @@
+SecKit 1.4
+-------------
+#1777704: Conflicts with D7 overlay
+#1765080: Typo in seckit description
+#1359292: First official CSP draft
+#1302576: Media Browser is not load when security kit is enabled
+
+
 SecKit 1.3
 -------------
 #1298742: Added option for setting custom noscript message
 #1243032: Override style for frames option is removed
 #1241226: Updated CSP to the new specification
+
 
 SecKit 1.2
 -------------
