@@ -10,8 +10,8 @@ which can be exploited via Drupal 6.x core Upload module.
 # Installation
 
 1. Extract archive with module to contributed modules directory.
-2. Enable it on Site Building -> Modules page.
-3. Settings of module are available on http://www.example.com/admin/settings/seckit
+2. Enable it on Modules page.
+3. Settings of module are available on http://www.example.com/admin/config/system/seckit
 
 # Features
 
