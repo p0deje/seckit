@@ -277,7 +277,6 @@ function seckit_admin_form() {
     '#default_value' => $options['seckit_clickjacking']['x_frame'],
     '#description' => $description,
   );
-
   // source for "Allow-From" option
   $form['seckit_clickjacking']['x_frame_allow_from'] = array(
     '#type' => 'textfield',

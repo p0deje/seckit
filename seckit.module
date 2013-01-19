@@ -209,7 +209,7 @@ function _seckit_x_xss($apply) {
       break;
 
     case SECKIT_X_XSS_DISABLE:
-      default: //do nothing
+    default: //do nothing
       break;
   }
 }
@@ -399,11 +399,11 @@ function _seckit_x_frame($apply) {
     case SECKIT_X_FRAME_ALLOW_FROM:
       $options = _seckit_get_options();
       $value = $options['seckit_clickjacking']['x_frame_allow_from'];
-      drupal_set_header("X-Frame-Options: Allow-From: $value");
+      drupal_set_header("X-Frame-Options: Allow-From: $value"); // set X-Frame-Options to Allow-From
       break;
 
     case SECKIT_X_FRAME_DISABLE:
-      default: // do nothing;
+    default: // do nothing;
       break;
   }
 }
@@ -532,11 +532,11 @@ function _seckit_get_options() {
     $result['seckit_xss']['csp']['checkbox'] = 0;
   }
   // set CSP allow directive to self
-  if (!$result['seckit_xss']['csp']['default-src']) {
+  if (!isset($result['seckit_xss']['csp']['default-src']) || !$result['seckit_xss']['csp']['default-src']) {
     $result['seckit_xss']['csp']['default-src'] = "'self'";
   }
   // set CSP report-uri directive to menu callback
-  if (!$result['seckit_xss']['csp']['report-uri']) {
+  if (!isset($result['seckit_xss']['csp']['report-uri']) || !$result['seckit_xss']['csp']['report-uri']) {
     $result['seckit_xss']['csp']['report-uri'] = 'admin/settings/seckit/csp-report';
   }
   // set X-XSS-Protection header to 1; mode=block
