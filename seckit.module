@@ -517,11 +517,11 @@ function _seckit_get_options() {
     $result['seckit_xss']['csp']['checkbox'] = 0;
   }
   // set CSP allow directive to self
-  if (!isset($result['seckit_xss']['csp']['default-src'])) {
+  if (!$result['seckit_xss']['csp']['default-src']) {
     $result['seckit_xss']['csp']['default-src'] = "'self'";
   }
   // set CSP report-uri directive to menu callback
-  if (!isset($result['seckit_xss']['csp']['report-uri'])) {
+  if (!$result['seckit_xss']['csp']['report-uri']) {
     $result['seckit_xss']['csp']['report-uri'] = 'admin/settings/seckit/csp-report';
   }
   // set X-XSS-Protection header to 1; mode=block
