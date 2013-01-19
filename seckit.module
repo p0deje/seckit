@@ -348,25 +348,29 @@ function _seckit_origin($apply) {
     $whitelist = explode(',', $options['seckit_csrf']['origin_whitelist']);
     $whitelist[] = $base_url;
     $method = $_SERVER['REQUEST_METHOD'];
+    $addr = $_SERVER['REMOTE_ADDR'];
 
-    // ignore GET and HEAD requests, ignore requests without Origin
-    if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
-      $origin = $_SERVER['HTTP_ORIGIN'];
-      // check Origin; make sure it's not null
-      if ($origin != 'null' && !in_array($origin, $whitelist)) {
-        $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
-        drupal_access_denied(); // send 403 response and show Access Denied page
-        // prepare information
-        $info = array(
-          '@ip'     => $_SERVER['REMOTE_ADDR'],
-          '@origin' => $_SERVER['HTTP_ORIGIN'],
-        );
-        watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', $info, WATCHDOG_ERROR); // log event
-        exit; // abort request
+    // ignore localhost
+    if (!in_array($addr, array('localhost', '127.0.0.1', '::1'))) {
+      // ignore GET and HEAD requests, ignore requests without Origin
+      if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
+        $origin = $_SERVER['HTTP_ORIGIN'];
+        // check Origin; make sure it's not null
+        if ($origin != 'null' && !in_array($origin, $whitelist)) {
+          $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
+          drupal_access_denied(); // send 403 response and show Access Denied page
+          // prepare information
+          $info = array(
+            '@ip'     => $addr,
+            '@origin' => $origin,
+          );
+          watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', $info, WATCHDOG_ERROR); // log event
+          exit; // abort request
+        }
       }
-    }
-    else {
-      // allow request
+      else {
+        // allow request
+      }
     }
   }
 }
