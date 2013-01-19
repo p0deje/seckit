@@ -13,6 +13,7 @@ define('SECKIT_X_XSS_1', 2); // set X-XSS-Protection HTTP header to 1; mode=bloc
 define('SECKIT_X_FRAME_DISABLE', 0); // disable X-Frame-Options HTTP header
 define('SECKIT_X_FRAME_SAMEORIGIN', 1); // set X-Frame-Options HTTP header to SameOrigin
 define('SECKIT_X_FRAME_DENY', 2); // set X-Frame-Options HTTP header to Deny
+define('SECKIT_X_FRAME_ALLOW_FROM', 3); // set X-Frame-Options HTTP header to Allow-From
 define('SECKIT_IE_MIME_FAILED', 0); // Upload module is not enabled
 define('SECKIT_IE_MIME_SECURE', 1); // txt is not in allowed extensions list
 define('SECKIT_IE_MIME_INSECURE', 2); // txt is in allowed extensions list
@@ -381,6 +382,9 @@ function _seckit_origin($apply) {
  * X-Frame-Options controls should browser show frames or not.
  * More information can be found at initial article about it at
  * http://blogs.msdn.com/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx
+ *
+ * Implementation of X-Frame-Options is based on specification draft availabe at
+ * http://tools.ietf.org/html/draft-ietf-websec-x-frame-options-01
  */
 function _seckit_x_frame($apply) {
   switch ($apply) {
@@ -390,6 +394,12 @@ function _seckit_x_frame($apply) {
 
     case SECKIT_X_FRAME_DENY:
       drupal_set_header('X-Frame-Options: Deny'); // set X-Frame-Options to Deny
+      break;
+
+    case SECKIT_X_FRAME_ALLOW_FROM:
+      $options = _seckit_get_options();
+      $value = $options['seckit_clickjacking']['x_frame_allow_from'];
+      drupal_set_header("X-Frame-Options: Allow-From: $value");
       break;
 
     case SECKIT_X_FRAME_DISABLE:
@@ -502,6 +512,7 @@ function _seckit_get_options() {
   );
   $default['seckit_clickjacking'] = array(
     'js_css_noscript' => 0,
+    'x_frame_allow_from' => '',
   );
   $default['seckit_ssl'] = array(
     'hsts' => 0,

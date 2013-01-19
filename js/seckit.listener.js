@@ -2,7 +2,8 @@ Drupal.behaviors.seckit = function (context) {
   seckit_listener_hsts(context);
   seckit_listener_csp(context);
   seckit_listener_origin(context);
-  seckit_listener_clickjacking(context);
+  seckit_listener_clickjacking_x_frame(context);
+  seckit_listener_clickjacking_noscript(context);
   seckit_listener_various(context);
   $('#edit-seckit-ssl-hsts', context).click(function () {
     seckit_listener_hsts(context);
@@ -16,8 +17,11 @@ Drupal.behaviors.seckit = function (context) {
   $('#edit-seckit-csrf-origin', context).click(function () {
     seckit_listener_origin(context);
   });
+  $('#edit-seckit-clickjacking-x-frame', context).change(function () {
+    seckit_listener_clickjacking_x_frame(context);
+  });
   $('#edit-seckit-clickjacking-js-css-noscript', context).click(function () {
-    seckit_listener_clickjacking(context);
+    seckit_listener_clickjacking_noscript(context);
   });
   $('#edit-seckit-various-from-origin', context).click(function () {
     seckit_listener_various(context);
@@ -112,9 +116,24 @@ function seckit_listener_origin(context) {
 
 /**
  * Adds/removes attributes for input fields in
- * Clickjacking fieldset.
+ * Clickjacking "X-Frame-Options" fields.
  */
-function seckit_listener_clickjacking(context) {
+function seckit_listener_clickjacking_x_frame(context) {
+  if ($('#edit-seckit-clickjacking-x-frame').find(":selected").text() == 'Allow-From') {
+    $('#edit-seckit-clickjacking-x-frame-allow-from', context).removeAttr('disabled');
+    $('label[for="edit-seckit-clickjacking-x-frame-allow-from"]', context).append('<span title="' + Drupal.t('This field is required.') + '" class="form-required">*</span>');
+  }
+  else {
+    $('#edit-seckit-clickjacking-x-frame-allow-from', context).attr('disabled', 'disabled');
+    $('label[for="edit-seckit-clickjacking-x-frame-allow-from"] > span', context).remove();
+  }
+}
+
+/**
+ * Adds/removes attributes for input fields in
+ * Clickjacking NoScript fields
+ */
+function seckit_listener_clickjacking_noscript(context) {
   if ($('#edit-seckit-clickjacking-js-css-noscript').is(':checked')) {
     $('#edit-seckit-clickjacking-noscript-message', context).removeAttr('disabled');
   }
