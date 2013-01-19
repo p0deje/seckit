@@ -107,6 +107,35 @@ class SecKitTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Tests Content Security Policy with all directives empty.
+   * In this case, we should revert back to default values.
+   */
+  public function testCSPAllDirectivesEmpty() {
+    $form = array(
+      'seckit_xss[csp][checkbox]'    => TRUE,
+      'seckit_xss[csp][default-src]' => '',
+      'seckit_xss[csp][script-src]'  => '',
+      'seckit_xss[csp][object-src]'  => '',
+      'seckit_xss[csp][img-src]'     => '',
+      'seckit_xss[csp][media-src]'   => '',
+      'seckit_xss[csp][style-src]'   => '',
+      'seckit_xss[csp][frame-src]'   => '',
+      'seckit_xss[csp][font-src]'    => '',
+      'seckit_xss[csp][connect-src]' => '',
+      'seckit_xss[csp][report-uri]'  => '',
+      'seckit_xss[csp][policy-uri]'  => '',
+    );
+    $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
+    $expected = "default-src 'self'; report-uri admin/config/system/seckit/csp-report";
+    $this->assertEqual($expected, $this->drupalGetHeader('Content-Security-Policy'),
+      t('Content-Security-Policy has default directive (Official).'));
+    $this->assertEqual($expected, $this->drupalGetHeader('X-Content-Security-Policy'),
+      t('X-Content-Security-Policy has default directive (Mozilla and IE10).'));
+    $this->assertEqual($expected, $this->drupalGetHeader('X-WebKit-CSP'),
+      t('X-WebKit-CSP has default directive (Chrome and Safari).'));
+  }
+
+  /**
    * Tests Content Security Policy in report-only mode.
    */
   public function testReportOnlyCSP() {
@@ -241,6 +270,17 @@ class SecKitTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
     $this->assertEqual('Deny', $this->drupalGetHeader('X-Frame-Options'),
       t('X-Frame-Options is set to Deny.'));
+  }
+
+  /**
+   * Tests set to Allow-From X-Frame-Options HTTP response header.
+   */
+  public function testXFrameOptionsIsAllowFrom() {
+    $form['seckit_clickjacking[x_frame]'] = SECKIT_X_FRAME_ALLOW_FROM;
+    $form['seckit_clickjacking[x_frame_allow_from]'] = 'http://www.google.com';
+    $this->drupalPost('admin/config/system/seckit', $form, t('Save configuration'));
+    $this->assertEqual('Allow-From: http://www.google.com', $this->drupalGetHeader('X-Frame-Options'),
+      t('X-Frame-Options is set to Allow-From.'));
   }
 
   /**

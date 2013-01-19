@@ -230,18 +230,27 @@ function seckit_admin_form() {
     SECKIT_X_FRAME_DISABLE => t('Disabled'),
     SECKIT_X_FRAME_SAMEORIGIN => 'SameOrigin',
     SECKIT_X_FRAME_DENY => 'Deny',
+    SECKIT_X_FRAME_ALLOW_FROM => 'Allow-From',
   );
   // configure X-Frame-Options
-  $items = array('Disabled - turn off X-Frame-Options', 'SameOrigin - browser allows all the attempts of framing website within its domain. Enabled by default', 'Deny - browser rejects any attempt of framing website');
+  $items = array('Disabled - turn off X-Frame-Options', 'SameOrigin - browser allows all the attempts of framing website within its domain. Enabled by default', 'Deny - browser rejects any attempt of framing website', 'Allow-From - browser allows framing website only from specified source');
   $args['!values'] = theme('item_list', array('items' => $items));
   $args['!msdn'] = l(t('MSDN article'), 'http://blogs.msdn.com/b/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx');
-  $description = t("X-Frame-Options HTTP response header controls browser's policy of frame rendering. Possible values: !values You may read more about it at !msdn.", $args);
+  $args['!spec'] = l(t('specification'), 'http://tools.ietf.org/html/draft-ietf-websec-x-frame-options-01');
+  $description = t("X-Frame-Options HTTP response header controls browser's policy of frame rendering. Possible values: !values You may read more about it at !msdn or !spec.", $args);
   $form['seckit_clickjacking']['x_frame'] = array(
     '#type' => 'select',
     '#title' => t('X-Frame-Options'),
     '#options' => $x_frame_options,
     '#default_value' => $options['seckit_clickjacking']['x_frame'],
     '#description' => $description,
+  );
+  // source for "Allow-From" option
+  $form['seckit_clickjacking']['x_frame_allow_from'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Allow-From'),
+    '#default_value' => $options['seckit_clickjacking']['x_frame_allow_from'],
+    '#description' => t('URI of source for "X-Frame-Options: Allow-From" value. Example, http://domain.com'),
   );
 
   // enable/disable JS + CSS + Noscript protection
@@ -346,6 +355,12 @@ function seckit_admin_form_validate($form, &$form_state) {
   $from_origin_destination = $form_state['values']['seckit_various']['from_origin_destination'];
   if (($from_origin_enable == 1) && (!$from_origin_destination)) {
     form_error($form['seckit_various']['from_origin_destination'], t('You have to set up trustworthy destination for From-Origin HTTP response header. Default is same.'));
+  }
+  // if X-Frame-Options is set to Allow-From, it should be explicitly set
+  $x_frame_value = $form_state['values']['seckit_clickjacking']['x_frame'];
+  $x_frame_allow_from = $form_state['values']['seckit_clickjacking']['x_frame_allow_from'];
+  if (($x_frame_value == SECKIT_X_FRAME_ALLOW_FROM) && (!$x_frame_allow_from)) {
+    form_error($form['seckit_clickjacking']['x_frame_allow_from'], t('You have to set up trustworthy destination for X-Frame-Options: Allow-From HTTP response header.'));
   }
   // if HTTP Strict Transport Security is enabled, max-age must be specified.
   // HSTS max-age should only contain digits.

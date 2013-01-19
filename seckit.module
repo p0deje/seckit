@@ -13,6 +13,7 @@ define('SECKIT_X_XSS_1', 2); // set X-XSS-Protection HTTP header to 1; mode=bloc
 define('SECKIT_X_FRAME_DISABLE', 0); // disable X-Frame-Options HTTP header
 define('SECKIT_X_FRAME_SAMEORIGIN', 1); // set X-Frame-Options HTTP header to SameOrigin
 define('SECKIT_X_FRAME_DENY', 2); // set X-Frame-Options HTTP header to Deny
+define('SECKIT_X_FRAME_ALLOW_FROM', 3); // set X-Frame-Options HTTP header to Allow-From
 
 /**
  * Implements hook_permission().
@@ -237,25 +238,29 @@ function _seckit_origin($apply) {
     $whitelist = explode(',', $options['seckit_csrf']['origin_whitelist']);
     $whitelist[] = $base_url;
     $method = $_SERVER['REQUEST_METHOD'];
+    $addr = $_SERVER['REMOTE_ADDR'];
 
-    // ignore GET and HEAD requests, ignore requests without Origin
-    if (!in_array($method, array('GET', 'HEAD')) && (isset($_SERVER['HTTP_ORIGIN']))) {
-      $origin = $_SERVER['HTTP_ORIGIN'];
-      // check Origin; make sure it's not null
-      if ($origin != 'null' && !in_array($origin, $whitelist)) {
-        $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
-        drupal_access_denied(); // send 403 response and show Access Denied page
-        // prepare information
-        $info = array(
-          '@ip'     => $_SERVER['REMOTE_ADDR'],
-          '@origin' => $_SERVER['HTTP_ORIGIN'],
-        );
-        watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', $info, WATCHDOG_ERROR); // log event
-        exit; // abort request
+    // ignore localhost
+    if (!in_array($addr, array('localhost', '127.0.0.1', '::1'))) {
+      // ignore GET and HEAD requests, ignore requests without Origin
+      if (!in_array($method, array('GET', 'HEAD')) && (isset($origin_whitelist))) {
+        $origin = $_SERVER['HTTP_ORIGIN'];
+        // check Origin; make sure it's not null
+        if ($origin != 'null' && !in_array($origin, $whitelist)) {
+          $_POST = array(); // clean POST data as long as drupal_access_denied() calls theme() rendering forms, which checks for their submissions
+          drupal_access_denied(); // send 403 response and show Access Denied page
+          // prepare information
+          $info = array(
+            '@ip'     => $addr,
+            '@origin' => $origin,
+          );
+          watchdog('seckit', 'Possible CSRF attack was blocked. IP address: @ip, Origin: @origin.', $info, WATCHDOG_ERROR); // log event
+          exit; // abort request
+        }
       }
-    }
-    else {
-      // allow request
+      else {
+        // allow request
+      }
     }
   }
 }
@@ -266,6 +271,9 @@ function _seckit_origin($apply) {
  * X-Frame-Options controls should browser show frames or not.
  * More information can be found at initial article about it at
  * http://blogs.msdn.com/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx
+ *
+ * Implementation of X-Frame-Options is based on specification draft availabe at
+ * http://tools.ietf.org/html/draft-ietf-websec-x-frame-options-01
  */
 function _seckit_x_frame($apply) {
   switch ($apply) {
@@ -275,6 +283,12 @@ function _seckit_x_frame($apply) {
 
     case SECKIT_X_FRAME_DENY:
       drupal_add_http_header('X-Frame-Options', 'Deny'); // set X-Frame-Options to Deny
+      break;
+
+    case SECKIT_X_FRAME_ALLOW_FROM:
+      $options = _seckit_get_options();
+      $value = $options['seckit_clickjacking']['x_frame_allow_from'];
+      drupal_add_http_header('X-Frame-Options', "Allow-From: $value"); // set X-Frame-Options to Allow-From
       break;
 
     case SECKIT_X_FRAME_DISABLE:
@@ -387,6 +401,7 @@ function _seckit_get_options() {
   );
   $default['seckit_clickjacking'] = array(
     'js_css_noscript' => 0,
+    'x_frame_allow_from' => '',
   );
   $default['seckit_ssl'] = array(
     'hsts'            => 0,
@@ -406,11 +421,11 @@ function _seckit_get_options() {
     $result['seckit_xss']['csp']['checkbox'] = 0;
   }
   // set CSP default-src directive to self
-  if (!isset($result['seckit_xss']['csp']['default-src'])) {
+  if (!isset($result['seckit_xss']['csp']['default-src']) || !$result['seckit_xss']['csp']['default-src']) {
     $result['seckit_xss']['csp']['default-src'] = "'self'";
   }
   // set CSP report-uri directive to menu callback
-  if (!isset($result['seckit_xss']['csp']['report-uri'])) {
+  if (!isset($result['seckit_xss']['csp']['report-uri']) || !$result['seckit_xss']['csp']['report-uri']) {
     $result['seckit_xss']['csp']['report-uri'] = 'admin/config/system/seckit/csp-report';
   }
   // set X-XSS-Protection header to 1; mode=block
