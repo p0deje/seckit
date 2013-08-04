@@ -1,3 +1,7 @@
+SecKit 1.6
+-------------
+#2043283: X-XSS-Protection is disabled by default
+
 SecKit 1.5
 -------------
 #1893038: Support Allow-From in X-Frame-Options

@@ -164,7 +164,7 @@ function seckit_admin_form() {
   );
   // configure X-XSS-Protection
   $link = l(t("IE's XSS filter security flaws in past"), 'http://hackademix.net/2009/11/21/ies-xss-filter-creates-xss-vulnerabilities');
-  $items = array('Disabled - XSS filter will work in default mode', '0 - XSS filter will be disabled for a website. It may be useful because of ' . $link, '1; mode=block - XSS filter will be left enabled, but it will block entire page instead of modifying dangerous content. Enabled by default');
+  $items = array('Disabled - XSS filter will work in default mode. Enabled by default', '0 - XSS filter will be disabled for a website. It may be useful because of ' . $link, '1; mode=block - XSS filter will be left enabled, but it will block entire page instead of modifying dangerous content');
   $args['!values'] = theme('item_list', $items);
   $form['seckit_xss']['x_xss']['select'] = array(
     '#type' => 'select',

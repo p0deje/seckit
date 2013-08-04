@@ -539,9 +539,9 @@ function _seckit_get_options() {
   if (!isset($result['seckit_xss']['csp']['report-uri']) || !$result['seckit_xss']['csp']['report-uri']) {
     $result['seckit_xss']['csp']['report-uri'] = 'admin/settings/seckit/csp-report';
   }
-  // set X-XSS-Protection header to 1; mode=block
+  // set X-XSS-Protection header to disabled (browser default)
   if (!isset($result['seckit_xss']['x_xss']['select'])) {
-    $result['seckit_xss']['x_xss']['select'] = SECKIT_X_XSS_1;
+    $result['seckit_xss']['x_xss']['select'] = SECKIT_X_XSS_DISABLE;
   }
   // enable X-Content-Type-Options
   if (!isset($result['seckit_xss']['x_content_type']['checkbox'])) {
