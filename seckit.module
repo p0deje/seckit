@@ -137,7 +137,7 @@ function _seckit_csp($apply) {
         $directives[] = "connect-src $csp_connect_src";
       }
       if ($csp_report_uri) {
-        $directives[] = "report-uri $csp_report_uri";
+        $directives[] = "report-uri " . base_path() . $csp_report_uri;
       }
       // merge directives
       $directives = implode('; ', $directives);
