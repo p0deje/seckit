@@ -1,3 +1,8 @@
+SecKit 1.7
+-------------
+#2091627: CSP report-uri directive is relative (Thanks @jweowu)
+#1909846: Undefined index in _seckit_csp_report() (Thanks @jweowu)
+
 SecKit 1.6
 -------------
 #2043283: X-XSS-Protection is disabled by default
