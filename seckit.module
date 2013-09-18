@@ -178,9 +178,9 @@ function _seckit_csp_report() {
       $omit = array('violated-directive', 'blocked-uri');
       $data = array_diff_key($report, array_flip($omit));
       $info = array(
-        '@directive'       => $report['violated-directive'],
-        '@blocked_uri'     => $report['blocked-uri'],
-        '@data'            => print_r($report, TRUE),
+        '@directive'   => $report['violated-directive'],
+        '@blocked_uri' => $report['blocked-uri'],
+        '@data'        => print_r($report, TRUE),
       );
       watchdog('seckit', 'CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Data: <pre>@data</pre>.', $info, WATCHDOG_WARNING);
     }
