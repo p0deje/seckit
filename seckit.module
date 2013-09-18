@@ -175,14 +175,14 @@ function _seckit_csp_report() {
     // log to watchdog
     foreach ($reports as $report) {
       $report = (array) $report; // convert object to array
-      // prepare information
+      $omit = array('violated-directive', 'blocked-uri');
+      $data = array_diff_key($report, array_flip($omit));
       $info = array(
         '@directive'       => $report['violated-directive'],
-        '@request'         => $report['request'],
-        '@request_headers' => $report['request-headers'],
         '@blocked_uri'     => $report['blocked-uri'],
+        '@data'            => print_r($report, TRUE),
       );
-      watchdog('seckit', 'CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Request: @request. <br /> Request headers: @request_headers', $info, WATCHDOG_WARNING);
+      watchdog('seckit', 'CSP: Directive @directive violated. <br /> Blocked URI: @blocked_uri. <br /> Data: <pre>@data</pre>.', $info, WATCHDOG_WARNING);
     }
   }
 }
